@@ -1,0 +1,58 @@
+<div class="container">
+	<div class="row">
+		<div class="col">
+			<div class="card p-2 m-5">
+				<form role="form" class="form-inline" (ngSubmit)="router.navigateByUrl('/' + model.handle);">
+					<i class="fa fa-at label-at"></i>
+					<input type="text" [(ngModel)]="model.handle" class="form-control flex-grow-1" name="handle"
+						placeholder="Enter your favorite handle" autocomplete="off" />
+					<button [disabled]="!model.handle" type="submit" class="btn btn-primary ml-2 mr-2" [ngClass]="{'btn-secondary': !model.handle}">
+						<i class="fa fa-search"></i>
+					</button>
+					<div class="btn-group btn-group-toggle">
+						<label class="btn-primary" ngbButtonLabel [ngClass]="{'btn-secondary': !this.model.showPhotos || !user}">
+							<input [disabled]="!this.timeline?.includes?.media" name="showphotos" type="checkbox"
+								ngbButton [(ngModel)]="model.showPhotos"
+								(click)="this.model.showPhotos = !this.model.showPhotos">
+							<i class="fa fa-image"></i>
+						</label>
+						<label class="btn-primary" ngbButtonLabel [ngClass]="{'btn-secondary': !this.model.showVideos || !user}">
+							<input [disabled]="!this.timeline?.includes?.media" name="showvideos" type="checkbox"
+								ngbButton [(ngModel)]="model.showVideos"
+								(click)="this.model.showVideos = !this.model.showVideos">
+							<i class="fa fa-film"></i>
+						</label>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+
+	<h4 *ngIf="user === null">User not found</h4>
+	<h4 *ngIf="timeline && !timeline?.includes?.media">User has not tweeted any photos recently</h4>
+
+	<div class="row justify-content-center">
+		<ng-container *ngFor="let media of timeline?.includes?.media">
+			<ng-container *ngIf="media.type === 'photo' && this.model.showPhotos ||
+							media.type !== 'photo' && this.model.showVideos">
+				<div class="col-sm-0">
+					<div class="card-img-wrapper p-1">
+						<a *ngIf="media.type !== 'photo'" href="{{getMediaTweetUrl(media.media_key)}}"
+							target="_blank"><img src='{{media.url || media.preview_image_url}}' class="card-img" /></a>
+						<img *ngIf="media.type === 'photo'" src='{{media.url || media.preview_image_url}}'
+							class="card-img" (click)="openImageModal(media)" />
+						<span class="media-type">
+							<i class="fa"
+								[ngClass]="{'fa-image': media.type === 'photo', 'fa-film': media.type !== 'photo'}"></i>
+						</span>
+						<span class="media-visit">
+							<a href='{{getMediaTweetUrl(media.media_key)}}' target="_blank">
+								<i class="fa fa-external-link-square"></i>
+							</a>
+						</span>
+					</div>
+				</div>
+			</ng-container>
+		</ng-container>
+	</div>
+</div>

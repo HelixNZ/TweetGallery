@@ -1,0 +1,70 @@
+.media-type {
+	position:absolute;
+	bottom: 3%;
+	left:5%;
+	text-shadow: 0px 0px 5px black;
+	color: white;
+}
+
+.media-visit {
+	position:absolute;
+	bottom: 3%;
+	right:5%;
+	text-shadow: 0px 0px 5px black;
+	color: white;
+}
+
+.media-visit a {
+	opacity: 0;
+	color: white;
+}
+
+.media-visit a:hover {
+	opacity: 1 !important;
+}
+
+.card-img-wrapper {
+	overflow: hidden;
+	position: relative;
+}
+
+.btn-group {
+	height:auto;
+}
+
+.form-control {
+	border-left-width: 35px;
+	border-color : rgb(21 38 54);
+}
+
+.label-at {
+	position: absolute;
+	top: 19px;
+	left: 18px;
+	color: white;
+}
+
+.form-inline label {
+	display: unset;
+}
+
+h4 {
+	text-align: center;
+}
+
+.card-img-wrapper:hover a {
+	opacity: 0.5;
+}
+
+.media-card {
+	width: 150px;
+	height: 150px;
+}
+
+.card-img {
+	cursor: pointer;
+	object-fit: cover;
+	width: 150px;
+	height: 150px;
+	border-radius: 0.25rem;
+}
