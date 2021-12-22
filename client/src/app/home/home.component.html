@@ -1,24 +1,41 @@
 <div class="container">
 	<div class="row">
 		<div class="col">
-			<div class="card p-2 m-5">
-				<form role="form" class="form-inline" (ngSubmit)="router.navigateByUrl('/' + model.handle);">
+			<div class="card p-2 mt-5 mb-5">
+				<form role="form" class="form-inline" (ngSubmit)="searchUser()">
 					<i class="fa fa-at label-at"></i>
-					<input type="text" [(ngModel)]="model.handle" class="form-control flex-grow-1" name="handle"
-						placeholder="Enter your favorite handle" autocomplete="off" />
-					<button [disabled]="!model.handle" type="submit" class="btn btn-primary ml-2 mr-2" [ngClass]="{'btn-secondary': !model.handle}">
+					<input
+						type="text"
+						[(ngModel)]="model.handle"
+						class="form-control flex-grow-1"
+						name="handle"
+						placeholder="Handle"
+						autocomplete="off" />
+					<button 
+						[disabled]="!model.handle"
+						type="submit"
+						class="btn btn-primary ml-2 mr-2"
+						[ngClass]="{'btn-secondary': !model.handle}">
 						<i class="fa fa-search"></i>
 					</button>
 					<div class="btn-group btn-group-toggle">
 						<label class="btn-primary" ngbButtonLabel [ngClass]="{'btn-secondary': !this.model.showPhotos || !user}">
-							<input [disabled]="!this.timeline?.includes?.media" name="showphotos" type="checkbox"
-								ngbButton [(ngModel)]="model.showPhotos"
+							<input 
+								[disabled]="!this.timeline?.includes?.media"
+								name="showphotos"
+								type="checkbox"
+								ngbButton
+								[(ngModel)]="model.showPhotos"
 								(click)="this.model.showPhotos = !this.model.showPhotos">
 							<i class="fa fa-image"></i>
 						</label>
 						<label class="btn-primary" ngbButtonLabel [ngClass]="{'btn-secondary': !this.model.showVideos || !user}">
-							<input [disabled]="!this.timeline?.includes?.media" name="showvideos" type="checkbox"
-								ngbButton [(ngModel)]="model.showVideos"
+							<input 
+								[disabled]="!this.timeline?.includes?.media" 
+								name="showvideos"
+								type="checkbox"
+								ngbButton
+								[(ngModel)]="model.showVideos"
 								(click)="this.model.showVideos = !this.model.showVideos">
 							<i class="fa fa-film"></i>
 						</label>
@@ -33,20 +50,22 @@
 
 	<div class="row justify-content-center">
 		<ng-container *ngFor="let media of timeline?.includes?.media">
-			<ng-container *ngIf="media.type === 'photo' && this.model.showPhotos ||
-							media.type !== 'photo' && this.model.showVideos">
+			<ng-container *ngIf="media.type === 'photo' && this.model.showPhotos || media.type !== 'photo' && this.model.showVideos">
 				<div class="col-sm-0">
 					<div class="card-img-wrapper p-1">
-						<a *ngIf="media.type !== 'photo'" href="{{getMediaTweetUrl(media.media_key)}}"
-							target="_blank"><img src='{{media.url || media.preview_image_url}}' class="card-img" /></a>
-						<img *ngIf="media.type === 'photo'" src='{{media.url || media.preview_image_url}}'
-							class="card-img" (click)="openImageModal(media)" />
+						<a *ngIf="media.type !== 'photo'" href="{{getMediaTweetUrl(media.media_key)}}" target="_blank">
+							<img src='{{media.preview_image_url}}' class="card-img" />
+						</a>
+						<img *ngIf="media.type === 'photo'"
+							src='{{getImageThumbnail(media.url)}}'
+							class="card-img"
+							(click)="openImageModal(media)"
+							(middleclick)="openLink(media?.url)"/>
 						<span class="media-type">
-							<i class="fa"
-								[ngClass]="{'fa-image': media.type === 'photo', 'fa-film': media.type !== 'photo'}"></i>
+							<i class="fa" [ngClass]="{'fa-image': media.type === 'photo', 'fa-film': media.type !== 'photo'}"></i>
 						</span>
 						<span class="media-visit">
-							<a href='{{getMediaTweetUrl(media.media_key)}}' target="_blank">
+							<a href='{{getMediaTweetUrl(media.media_key)}}' target="_blank" [ngClass]="{'forced-ext-link': media.type !== 'photo'}">
 								<i class="fa fa-external-link-square"></i>
 							</a>
 						</span>

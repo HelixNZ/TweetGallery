@@ -44,6 +44,10 @@
 	color: white;
 }
 
+.form-inline {
+	flex-flow: unset;
+}
+
 .form-inline label {
 	display: unset;
 }
@@ -54,6 +58,16 @@ h4 {
 
 .card-img-wrapper:hover a {
 	opacity: 0.5;
+}
+
+.card-img-wrapper:hover .forced-ext-link {
+	opacity: 1 !important;
+}
+
+@media (pointer:none), (pointer:coarse) {
+	.card-img-wrapper a {
+		opacity: 1 !important;
+	}
 }
 
 .media-card {

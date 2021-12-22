@@ -1,5 +1,5 @@
-import { Component, Input, OnInit } from '@angular/core';
-import {NgbModal, ModalDismissReasons} from '@ng-bootstrap/ng-bootstrap';
+import { Component, Input } from '@angular/core';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { Media } from 'src/app/_models/media';
 
 @Component({
@@ -7,11 +7,12 @@ import { Media } from 'src/app/_models/media';
   templateUrl: './image-modal.component.html',
   styleUrls: ['./image-modal.component.css']
 })
-export class ImageModalComponent implements OnInit {
+export class ImageModalComponent {
   @Input() public media?: Media;
 
   constructor(public modalService: NgbModal) { }
 
-  ngOnInit(): void {
+  openImageInNewWindow(url?:string){
+    if(url) window.open(url, "_blank");
   }
 }

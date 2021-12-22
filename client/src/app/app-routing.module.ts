@@ -6,7 +6,9 @@ import { UserIdResolver } from './_resolvers/userid.resolver';
 const routes: Routes = [
   { path: '', component: HomeComponent },
   { path: ':username', component: HomeComponent, resolve: { username: UserIdResolver } },
-  { path: '**', component: HomeComponent, pathMatch: 'full' },
+
+  //Using the userID resolver for all paths so we can just catch all errors
+  { path: '**', component: HomeComponent, resolve: { username: UserIdResolver }, pathMatch: 'full' },
 ];
 
 @NgModule({
