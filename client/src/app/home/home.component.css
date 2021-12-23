@@ -76,6 +76,7 @@ h4 {
 }
 
 .card-img {
+	background-image: url("../../assets/loading.gif");
 	cursor: pointer;
 	object-fit: cover;
 	width: 150px;

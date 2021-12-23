@@ -1,3 +1,8 @@
+@font-face {
+	font-family: "Outfit";
+	src: url("assets/Outfit/Outfit-VariableFont_wght.ttf");
+  }
+
 body {
 	background-color: rgb(21 38 54);
 	color: white;
@@ -25,6 +30,12 @@ body {
 }
 
 .modal-content, .modal-img {
+	background-color: #0b131b !important;
 	width: 100%;
 	max-height: 95vh;
+}
+
+img {
+	min-width: 150px;
+	min-height: 150px;
 }

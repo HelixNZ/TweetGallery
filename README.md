@@ -3,7 +3,7 @@ Personal Angular/DotNet project that allows you to view twitter as a gallery rat
 Type in your favorite artist/content creator's handle and get their media back in an easy to view format.
 
 Currently it uses the V2 api, it may not retrieve the desired about of images currently.
-That will be fixed at a later date when I have time, solved via pagination or use of V1
+That will be fixed at a later date when I have time, or if I apply for V1.
 
 
 # TODO
@@ -12,9 +12,6 @@ Don't expect too much from this app currently.
 
 There is so much left for me to do on this before it can be ready for full-time public use.
 Below is a list of personal tasks I may do in my spare time:
-  - Add touch swipe support to the gallery, make sure mobile device support is 10/10
-  - Add a loading indicator
-  - Add pagination support using V2 timeline meta, either button to load or infinite scroll (if V1)
   - Reduce/Optimize API -> Client json being transferred, currently it's just the basics to get started
   - Add a DB for caching to reduce calls to the twitter API (currently it's not ideal, mildly abusive)
   - Request elevated api access so I can make use of media searching in the V1 api

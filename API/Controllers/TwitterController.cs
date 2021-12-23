@@ -51,20 +51,22 @@ public class TwitterController : BaseApiController
 	}
 
 	[HttpGet("timeline/{userid}")]
-	public async Task<ActionResult<Timeline>> GetTimeline(string userId)
+	public async Task<ActionResult<Timeline>> GetTimeline(string userid, [FromQuery] string token)
 	{
 		//Get the timeline for the user, 100 results
 		var client = new HttpClient();
-		var requestUrl = "https://api.twitter.com/2/users/" + userId + "/tweets" +
+		var requestUrl = "https://api.twitter.com/2/users/" + userid + "/tweets" +
 					"?max_results=100&expansions=attachments.media_keys" +
 					"&media.fields=duration_ms,height,media_key,preview_image_url,public_metrics,type,url,width" +
 					"&exclude=replies,retweets";
+
+		if(token != null && token.Length > 0) requestUrl += "&pagination_token=" + token;
 
 		client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _config.Value.ApiBearerToken);
 
 		HttpResponseMessage response = await client.GetAsync(requestUrl);
 
-		if (!response.IsSuccessStatusCode) return BadRequest("Server error fetching timeline");
+		if (!response.IsSuccessStatusCode) return BadRequest("Server error when fetching timeline");
 
 		var result = await response.Content.ReadFromJsonAsync<Timeline>();
 

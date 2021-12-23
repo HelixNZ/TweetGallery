@@ -9,6 +9,7 @@ import { Media } from 'src/app/_models/media';
 })
 export class ImageModalComponent {
   @Input() public media?: Media;
+  @Input() public imageLoaded: boolean = false;
 
   constructor(public modalService: NgbModal) { }
 

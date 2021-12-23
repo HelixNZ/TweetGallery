@@ -43,14 +43,40 @@ export class HomeComponent implements OnInit {
     });
   }
 
-  getUserTimeline(userId: string) {
-    this.twitterService.getUserTimeline(userId).subscribe(timeline => {
+  getUserTimeline(userId: string, paginationToken?: string) {
+    this.model.loadingTimeline = true;
+    this.twitterService.getUserTimeline(userId, paginationToken).subscribe(timeline => {
       this.timeline = timeline;
+      this.model.loadingTimeline = false;
     });
+  }
+
+  getNextPage() {
+    if (this.timeline?.meta.next_token && this.user) {
+      this.model.loadingNextPage = true;
+      this.twitterService.getUserTimeline(this.user.id, this.timeline.meta.next_token).subscribe(timeline => {
+        if (this.timeline) { //required for strict
+          //Copy tweet data 
+          this.timeline.data = [...this.timeline.data, ...timeline.data];
+          if (this.timeline.includes?.media && timeline.includes?.media) {
+            //We have media, and so does the new timeline, append
+            this.timeline.includes.media = [...this.timeline.includes.media, ...timeline.includes?.media]; //Copy media data
+          }
+          else if (timeline.includes?.media) {
+            //We don't have media, so just import from this timeline if it has any
+            this.timeline.includes = timeline.includes;
+          }
+
+          this.timeline.meta.next_token = timeline.meta.next_token; //Store next token
+          this.model.loadingNextPage = false;
+        }
+      });
+    }
   }
 
   openImageModal(media: Media) {
     this.modalRef = this.modalService.open(ImageModalComponent, { centered: true });
+    this.modalRef.componentInstance.imageLoaded = false;
     this.modalRef.componentInstance.media = media;
   }
 
@@ -60,6 +86,7 @@ export class HomeComponent implements OnInit {
     //  For now the userid resolver will handle this fine
     //  but this will be something I need to add in the near future to outright
     //  prevent people from navigating
+    this.model.loadingUser = true;
     this.router.navigateByUrl('/' + this.model.handle);
 
     //const regex = new RegExp('^@?(\\w){1,15}$');
@@ -93,7 +120,12 @@ export class HomeComponent implements OnInit {
   }
 
   updateMediaModal(dir: number) {
-    if (this.modalRef?.componentInstance?.media && this.timeline?.includes?.media) {
+    if (this.modalRef?.componentInstance?.media &&  //Modal open and has an image already (used for getting next/prev from current)
+        this.timeline?.includes?.media && //Timeline has media, used for edge-case and strict
+        this.modalRef.componentInstance.imageLoaded) { //Only proceed if image loaded already, otherwise ignore request
+
+      this.modalRef.componentInstance.imageLoaded = false;
+
       var media = this.timeline.includes.media;
       var media_key = this.modalRef.componentInstance.media.media_key;
       var index = media.findIndex(media => media.media_key === media_key);
@@ -112,7 +144,9 @@ export class HomeComponent implements OnInit {
           if (media[index].type !== 'photo' && this.model.showVideos) break;
         }
 
-        this.modalRef.componentInstance.media = media[index];
+        //Fix for infinite load
+        if(this.modalRef.componentInstance.media === media[index]) this.modalRef.componentInstance.imageLoaded = true;
+        else this.modalRef.componentInstance.media = media[index];
       }
     }
   }
