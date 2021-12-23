@@ -120,7 +120,7 @@ export class HomeComponent implements OnInit {
   }
 
   updateMediaModal(dir: number) {
-    if (this.modalRef?.componentInstance?.media &&  //Modal open and has an image already (used for getting next/prev from current)
+    if (dir !== 0 && this.modalRef?.componentInstance?.media &&  //Modal open and has an image already (used for getting next/prev from current)
         this.timeline?.includes?.media && //Timeline has media, used for edge-case and strict
         this.modalRef.componentInstance.imageLoaded) { //Only proceed if image loaded already, otherwise ignore request
 
@@ -153,7 +153,7 @@ export class HomeComponent implements OnInit {
 
   @HostListener('window:keyup', ['$event'])
   public keyup(event: KeyboardEvent): any {
-    var push = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
+    var push = (event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0);
     this.updateMediaModal(push);
   }
 
