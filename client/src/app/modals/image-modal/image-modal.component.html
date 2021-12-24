@@ -1,11 +1,11 @@
 <img
 (click)="this.modalService.dismissAll()"
 (load)="imageLoaded = true"
-(middleclick)="openImageInNewWindow(media?.url || media?.preview_image_url)"
+(middleclick)="openImageInNewWindow()"
 [ngClass]="{'loading': !imageLoaded}"
 class="modal-img"
-src='{{media?.url || media?.preview_image_url}}'
-alt="{{media?.url || media?.preview_image_url}}">
+src='{{media?.mediaUrl}}'
+alt="{{media?.mediaUrl}}">
 
 <div *ngIf="!imageLoaded" class="spinner">
 	<div class="spinner-border" role="status">

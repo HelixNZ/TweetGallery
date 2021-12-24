@@ -13,7 +13,7 @@ export class ImageModalComponent {
 
   constructor(public modalService: NgbModal) { }
 
-  openImageInNewWindow(url?:string){
-    if(url) window.open(url, "_blank");
+  openImageInNewWindow(){
+    if(this.media) window.open(this.media.type === "photo" ? this.media.mediaUrl : this.media.tweetUrl, "_blank");
   }
 }
