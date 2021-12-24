@@ -5,10 +5,10 @@ import { UserTimelineResolver } from './_resolvers/usertimeline.resolver';
 
 const routes: Routes = [
   { path: '', component: HomeComponent },
-  { path: ':username', component: HomeComponent, resolve: { timeline: UserTimelineResolver } },
+  { path: ':username', component: HomeComponent, resolve: { username: UserTimelineResolver } },
 
   //Using the userID resolver for all paths so we can just catch all errors
-  { path: '**', component: HomeComponent, resolve: { timeline: UserTimelineResolver }, pathMatch: 'full' },
+  { path: '**', component: HomeComponent, resolve: { username: UserTimelineResolver }, pathMatch: 'full' },
 ];
 
 @NgModule({

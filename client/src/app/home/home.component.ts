@@ -31,17 +31,23 @@ export class HomeComponent implements OnInit {
   ngOnInit(): void {
     this.model.showPhotos = true;
     this.model.showVideos = true;
-    this.model.loadingTimeline = true;
 
     this.route.data.subscribe(routeData => {
-      this.timeline = (routeData.timeline as Timeline);
-      if(this.timeline?.username) this.model.handle = this.timeline.username;
-      this.model.loadingTimeline = false;
+      var username = (routeData.username as string);
+      if(username){
+        this.model.handle = username;
+        this.model.loadingTimeline = true;
+        this.twitterService.getUserTimeline(username).subscribe(timeline => {
+          this.timeline = timeline;
+          this.model.loadingTimeline = false;
+        });
+      }
     });
   }
 
   getNextPage() {
     if (this.timeline?.nextPageToken) {
+      this.model.multiplePages = true; //used for alerting the user we've reached twitter's boundaries
       this.model.loadingNextPage = true;
 
       this.twitterService.getUserTimeline(this.timeline.username, this.timeline.nextPageToken).subscribe(timeline => {

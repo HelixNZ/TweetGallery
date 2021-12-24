@@ -1,17 +1,16 @@
 import { Injectable } from '@angular/core';
 import { Resolve, ActivatedRouteSnapshot } from '@angular/router';
 import { Observable, of } from 'rxjs';
-import { Timeline } from '../_models/timeline';
 import { TwitterService } from '../_services/twitter.service';
 
 @Injectable({
   providedIn: 'root'
 })
-export class UserTimelineResolver implements Resolve<Timeline | null> {
+export class UserTimelineResolver implements Resolve<string | null> {
 
   constructor(private twitterService: TwitterService) { }
 
-  resolve(route: ActivatedRouteSnapshot): Observable<Timeline | null> {
+  resolve(route: ActivatedRouteSnapshot): Observable<string | null> {
     const regex = new RegExp('^@?(\\w){1,15}$');
     var username: string = route.paramMap.get('username') || '';
 
@@ -21,7 +20,7 @@ export class UserTimelineResolver implements Resolve<Timeline | null> {
     }
     else {
       if (username[0] === '@') username = username.slice(1); //strip @ if we got an @handle for some reason
-      return this.twitterService.getUserTimeline(username);
+      return of(username);
     }
 
   }

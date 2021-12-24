@@ -12,7 +12,6 @@ Don't expect too much from this app currently.
 
 There is so much left for me to do on this before it can be ready for full-time public use.
 Below is a list of personal tasks I may do in my spare time:
-  - Reduce/Optimize API -> Client json being transferred, currently it's just the basics to get started
   - Add a DB for caching to reduce calls to the twitter API (currently it's not ideal, mildly abusive)
   - Request elevated api access so I can make use of media searching in the V1 api
       - This will fix performance, results, api request count, it's much needed before full-time use
