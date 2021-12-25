@@ -39,6 +39,7 @@ export class HomeComponent implements OnInit {
         this.model.loadingTimeline = true;
         this.twitterService.getUserTimeline(username).subscribe(timeline => {
           this.timeline = timeline;
+          this.model.handle = this.timeline.username;
           this.model.loadingTimeline = false;
         });
       }
@@ -79,8 +80,8 @@ export class HomeComponent implements OnInit {
     var componentInstance = this.modalRef?.componentInstance;
 
     if (dir !== 0 && componentInstance?.media &&  //Modal open and has an image already (used for getting next/prev from current)
-      this.timeline?.media && //Timeline has media, used for edge-case and strict
-      componentInstance.imageLoaded) { //Only proceed if image loaded already, otherwise ignore request
+      this.timeline?.media) { //Timeline has media, used for edge-case and strict
+      //componentInstance.imageLoaded) { //Only proceed if image loaded already, otherwise ignore request
 
       componentInstance.imageLoaded = false;
 
