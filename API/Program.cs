@@ -6,13 +6,12 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddHttpsRedirection(options => { options.HttpsPort = 443; });
+//builder.Services.AddHttpsRedirection(options => { options.HttpsPort = 443; });
 
 builder.Services.Configure<TwitterSettings>(builder.Configuration.GetSection("TwitterSettings"));
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
-	options.ForwardedHeaders = ForwardedHeaders.XForwardedFor |
-								ForwardedHeaders.XForwardedProto;
+	options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
 	options.KnownNetworks.Clear();
 	options.KnownProxies.Clear();
 });
