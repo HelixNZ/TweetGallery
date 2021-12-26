@@ -18,6 +18,7 @@ body {
 }
 
 .modal {
+	touch-action: pan-y !important;
 	text-align: -webkit-center;
 }
 
@@ -36,6 +37,6 @@ body {
 }
 
 img {
-	min-width: 150px;
-	min-height: 150px;
+	min-width: 50px;
+	min-height: 50px;
 }

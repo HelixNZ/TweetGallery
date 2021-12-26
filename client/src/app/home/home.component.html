@@ -1,6 +1,6 @@
 <div class="container">
 	<div class="row">
-		<div class="col">
+		<div class="col nav-col">
 			<div class="card p-2 mt-5 mb-5">
 				<form role="form" class="form-inline" (ngSubmit)="searchUser()">
 					<i class="fa fa-at label-at"></i>
@@ -38,11 +38,11 @@
 			<div class="col-sm-0" *ngIf="media.type === 'photo' && model.showPhotos || media.type !== 'photo' && model.showVideos">
 				<div class="card-img-wrapper p-1">
 					<a *ngIf="media.type !== 'photo'" href="{{media.tweetUrl}}" target="_blank">
-						<img src='{{media.thumbnailUrl}}' alt='{{media.thumbnailUrl}}' class="card-img" />
+						<img src='{{media.thumbnailUrl}}' alt='{{media.thumbnailUrl}}' class="card-img" draggable="false" />
 					</a>
 					<img *ngIf="media.type === 'photo'" src='{{media.thumbnailUrl}}'
 						alt='{{media.thumbnailUrl}}' class="card-img" (click)="openImageModal(media)"
-						(middleclick)="openLink(media.mediaUrl)" />
+						(middleclick)="openLink(media.mediaUrl)" draggable="false" />
 					<span class="media-type">
 						<i class="fa"
 							[ngClass]="{'fa-image': media.type === 'photo', 'fa-film': media.type !== 'photo'}"></i>
@@ -58,14 +58,14 @@
 		</ng-container>
 	</div>
 
-	<div class="row justify-content-center" *ngIf="timeline?.nextPageToken">
+	<div class="row justify-content-center" *ngIf="futureTimeline?.media && model.multiplePages">
 		<button [disabled]="model.loadingNextPage" ngbButton class="btn btn-primary mt-5" (click)="getNextPage()">
 			<ng-container *ngIf="!model.loadingNextPage">Load more results</ng-container>
 			<span *ngIf="model.loadingNextPage" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
 		</button>
 	</div>
 
-	<div class="row justify-content-center" *ngIf="!timeline?.nextPageToken && model.multiplePages">
+	<div class="row justify-content-center" *ngIf="!futureTimeline?.media && model.multiplePages">
 		<h4 class="mt-5">You've gone as far back as I can show!</h4>
 	</div>
 </div>

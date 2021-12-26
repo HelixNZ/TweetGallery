@@ -23,7 +23,7 @@ public class TwitterController : BaseApiController
 	private async Task<UserDto> GetUserByUsername(string username)
 	{
 		//Get the user ID from a username
-		HttpResponseMessage response = await _httpClient.GetAsync("users/by/username/" + username);
+		HttpResponseMessage response = await _httpClient.GetAsync("users/by/username/" + username + "?user.fields=profile_image_url");
 
 		//Just treat all errors as user not found, there are many reasons why this request will fail
 		//	such as not found, username doesn't match regex etc.
@@ -33,14 +33,20 @@ public class TwitterController : BaseApiController
 
 		if(result.data == null) return null;
 
-		return new UserDto
+		var user = new UserDto
 		{
 			Id = result.data.id,
-			Username = result.data.username
+			Username = result.data.username,
+			ProfileImage = result.data.profile_image_url
 		};
+
+		//Get 400x400 user profile img
+		if(user.ProfileImage != null) user.ProfileImage = user.ProfileImage.Substring(0, user.ProfileImage.LastIndexOf("_")) + "_400x400.jpg";
+
+		return user;
 	}
 
-	[HttpGet("{username}")]
+	[HttpGet("timeline/{username}")]
 	public async Task<ActionResult<TimelineDto>> GetTimeline(string username, [FromQuery] string token)
 	{
 		//Get the timeline for the user, 100 results
@@ -63,51 +69,19 @@ public class TwitterController : BaseApiController
 		//If no media returned, and pagination token wasn't included, then user had no media off the bat, so assume nothing of interest
 		if (token == null && result.includes == null) return new TimelineDto { Username = user.Username, Error = user.Username + " hasn't posted any images recently :(" };
 
-		//Peek into the future, check to see if the next tweet exists for "pagination"
-		//This is.... not ideal honestly, but with Twitter returning broken pagination tokens
-		//	this is a simple fix to not have a weird button that returns nothing
-		//
-		//Now there is an issue, wherefor max_results 5 is the minimum, also most logical number to put
-		//	here considering it's burning API limits that we might not even need to query for...
-		//However, some accounts will not return the desired amount, it could be anywhere between [5...100]
-		//	which is upsetting, but reinforces the need for V1 access even more
-		//
-		//
-		//Solution here is to not look into the future, and just have a button on the page even if we have 1 image returned
-		//This looks like crap because why have a button there? But there is no way to successfully pre-check if there are
-		//	any more results than there already is to prevent showing this button other than what we do here...
-		//
-		//Thankfully, max_results of 100 does not burn 100 tweets in my API limits if less results are returned.
-		//So not /entirely/ bad here...
-		requestUrl = "users/" + user.Id + "/tweets?max_results=100&exclude=replies,retweets&until_id=" + result.meta.oldest_id;
-		response = await _httpClient.GetAsync(requestUrl);
-
-		//The request should never fail if we've gotten this far, and twitter should response with meta.result_count = 0 at worst
-		if (!response.IsSuccessStatusCode) return BadRequest("Server error when fetching timeline");
-		var future = await response.Content.ReadFromJsonAsync<Timeline>();
-
 		//Create timeline
 		var timeline = new TimelineDto
 		{
 			Username = user.Username,
-			Media = new List<MediaDto>(),
-
-			//Alright, sooooo for some reason Twitter's V2 API doesn't provide pagination tokens
-			//		for some accounts, or just randomly decides to stop including them in results
-			//
-			//The solution for this is just to search using the oldest ID returned
-			//
-			//I tested this in postman and indeed it does fix the weird soft limits imposed by the API
-			//
-			//The only issue is that it's harder to check how many tweets we have left to query
-			//		so for now we'll naturally stop after no results are returned
-			NextPageToken = future.meta.result_count > 0 ? result.meta.oldest_id : null //Use oldest ID instead of pagination token
+			ProfileImg = user.ProfileImage,
+			NextPageToken = result.meta.oldest_id //Use oldest ID instead of pagination token
 		};
 
 		//If no media but we are paginated, return the media-less timeline which will remove the "Load more results" button
 		if(result.includes == null) return Ok(timeline);
 
 		//Map the media and store it into the timelineDto
+		timeline.Media = new List<MediaDto>(); //Only create the list if there is media
 		result.includes.media.ForEach(media =>
 		{
 			var newMedia = new MediaDto

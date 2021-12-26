@@ -13,6 +13,7 @@ import { Media } from '../_models/media';
 })
 export class HomeComponent implements OnInit {
   timeline?: Timeline;
+  futureTimeline?: Timeline;
   model: any = [];
   modalRef?: NgbModalRef;
 
@@ -35,29 +36,70 @@ export class HomeComponent implements OnInit {
     this.route.data.subscribe(routeData => {
       var username = (routeData.username as string);
       if(username){
-        this.model.handle = username;
+        this.model.handle = username; //temporary while we load the timeline
         this.model.loadingTimeline = true;
+
         this.twitterService.getUserTimeline(username).subscribe(timeline => {
           this.timeline = timeline;
           this.model.handle = this.timeline.username;
-          this.model.loadingTimeline = false;
+          this.model.loadingTimeline = false; //Don't show loading for future, load silently
+
+          this.buildLinkPreview();
+
+          //Peek & store future?
+          if(timeline.nextPageToken){
+            this.twitterService.getUserTimeline(username, timeline.nextPageToken).subscribe(futureTimeline => {
+              this.futureTimeline = futureTimeline;
+              if(futureTimeline.media) this.model.multiplePages = true; //Prevents the EOF message being displayed for single page results
+            });
+          }
         });
       }
     });
   }
 
+  buildLinkPreview() {
+    if(this.timeline) {
+      var ogTitle = document.createElement('meta');
+      ogTitle.setAttribute("property", "og:title");
+      ogTitle.setAttribute("content", "Twitter gallery for @" + this.timeline.username);
+      document.head.appendChild(ogTitle);
+
+      var ogUrl = document.createElement('meta');
+      ogUrl.setAttribute("property", "og:url");
+      ogUrl.setAttribute("content", "https://twittergallery.herokuapp.com/" + this.timeline.username);
+      document.head.appendChild(ogUrl);
+
+      var ogDesc = document.createElement('meta');
+      ogDesc.setAttribute("property", "og:description");
+      ogDesc.setAttribute("content", "Click to view the gallery of @" + this.timeline.username);
+      document.head.appendChild(ogDesc);
+
+      var ogImage = document.createElement('meta');
+      ogImage.setAttribute("property", "og:image");
+      ogImage.setAttribute("content", this.timeline.profileImg);
+      document.head.appendChild(ogImage);
+    }
+  }
+
   getNextPage() {
-    if (this.timeline?.nextPageToken) {
-      this.model.multiplePages = true; //used for alerting the user we've reached twitter's boundaries
+    if(this.timeline && this.futureTimeline?.media) {
       this.model.loadingNextPage = true;
 
-      this.twitterService.getUserTimeline(this.timeline.username, this.timeline.nextPageToken).subscribe(timeline => {
-        if (this.timeline) { //required for strict
-          this.timeline.media = [...this.timeline.media, ...timeline.media];
-          this.timeline.nextPageToken = timeline.nextPageToken; //Store next token
+      //Use preloaded timeline
+      this.timeline.media = [...this.timeline.media, ...this.futureTimeline.media];
+
+      //Grab next page if there is one
+      if (this.futureTimeline?.nextPageToken) {
+        this.twitterService.getUserTimeline(this.timeline.username, this.futureTimeline.nextPageToken).subscribe(timeline => {
+          this.futureTimeline = timeline;
           this.model.loadingNextPage = false;
-        }
-      });
+        });
+      }
+      else {
+        this.futureTimeline = undefined;
+        this.model.loadingNextPage = false;
+      }
     }
   }
 
@@ -68,7 +110,7 @@ export class HomeComponent implements OnInit {
   }
 
   searchUser() { //TODO: Validate the form
-    this.model.loadingUser = true;
+    this.model.loadingTimeline = true;
     this.router.navigateByUrl('/' + this.model.handle);
   }
 
