@@ -5,9 +5,6 @@ using Microsoft.AspNetCore.HttpOverrides;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
-//builder.Services.AddHttpsRedirection(options => { options.HttpsPort = 443; });
-
 builder.Services.Configure<TwitterSettings>(builder.Configuration.GetSection("TwitterSettings"));
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
@@ -35,14 +32,11 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-if (app.Environment.IsDevelopment())
-{
-	app.UseCors(policy => policy
+app.UseCors(policy => policy
 		.AllowAnyHeader()
 		.AllowAnyMethod()
 		.AllowCredentials()
 		.WithOrigins("https://localhost:4200"));
-}
 
 app.UseAuthorization();
 
