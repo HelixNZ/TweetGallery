@@ -1,10 +1,11 @@
-# TwitterGallery
+# Twitter Gallery
 Personal Angular/DotNet project that allows you to view twitter as a gallery rather than tweets.
-Type in your favorite artist/content creator's handle and get their media back in an easy to view format.
+Type in your favorite artist/content creator's handle, a topic or even a hashtag to see gallerized results.
+Topics and hashtag searches will return up to the last 7 days worth of media posted.
 
+# Notes on results
 Currently it uses the V2 api, it may not retrieve the desired about of images currently.
 That will be fixed at a later date when I have time, or if I apply for V1.
-
 
 # TODO
 This is a personal timewaster project so it's not finished nor polished.
@@ -17,5 +18,4 @@ Below is a list of personal tasks I may do in my spare time:
       - This will fix performance, results, api request count, it's much needed before full-time use
       - This will also provide access to video/gif urls which are not currently supported in V2
       - Add support for users to sign in so that they can see accounts they have permission to view
-      
-I'm sure there is more I'm not thinking of right now but this will give me tasks to move forwards with
+        - This increases rate limits as well as potentially adjusted results (by topic/hashtag)

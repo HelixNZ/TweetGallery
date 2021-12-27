@@ -13,6 +13,10 @@
 	display: unset;
 }
 
+.btn-group {
+	flex-grow: 1;
+}
+
 h4 {
 	text-align: center;
 }

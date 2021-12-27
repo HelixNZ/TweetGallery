@@ -15,9 +15,9 @@ export class HomeComponent implements OnInit {
   timeline?: Timeline;
   futureTimeline?: Timeline;
   modalRef?: NgbModalRef;
-  states = {multiplePages: false, loading: false, loadingNextPage: false};
+  states = { multiplePages: false, loading: false, loadingNextPage: false };
+  filters = { video: true, photo: true, nsfw: false };
   query = "";
-  filters = {video: true, photo: true, nsfw: false};
 
   constructor(
     private twitterService: TwitterService,
@@ -38,20 +38,20 @@ export class HomeComponent implements OnInit {
 
       var query = handle ? handle : tags ? tags : undefined;
 
-      if(query) {
+      if (query) {
         this.query = query; //temporary while we load the timeline
         this.states.loading = true;
-        
+
         this.twitterService.getTimeline(query).subscribe(timeline => {
           this.timeline = timeline;
           this.query = this.timeline.query;
           this.states.loading = false; //Don't show loading for future, load silently
 
           //Peek & store future?
-          if(timeline.nextPageToken && query){
+          if (timeline.nextPageToken && query) {
             this.twitterService.getTimeline(query, timeline.nextPageToken).subscribe(futureTimeline => {
               this.futureTimeline = futureTimeline;
-              if(futureTimeline.media) this.states.multiplePages = true; //Prevents the EOF message being displayed for single page results
+              if (futureTimeline.media) this.states.multiplePages = true; //Prevents the EOF message being displayed for single page results
             });
           }
         });
@@ -62,16 +62,16 @@ export class HomeComponent implements OnInit {
   enableExplicit() {
     //TODO: Display warning message (Are you over 18 years old? before allowing this to be set true)
     this.filters.nsfw = !this.filters.nsfw;
-    localStorage.setItem("showSensitiveTweets", this.filters.nsfw? "true": "false");
+    localStorage.setItem("showSensitiveTweets", this.filters.nsfw ? "true" : "false");
   }
 
   getNextPage() {
-    if(this.timeline && this.futureTimeline?.media) {
+    if (this.timeline && this.futureTimeline?.media) {
       this.states.loading = true;
 
       //Use preloaded timeline
-      if(this.timeline.media && this.futureTimeline.media) this.timeline.media = [...this.timeline.media, ...this.futureTimeline.media];
-      else if(this.futureTimeline.media) this.timeline.media = this.futureTimeline.media;
+      if (this.timeline.media && this.futureTimeline.media) this.timeline.media = [...this.timeline.media, ...this.futureTimeline.media];
+      else if (this.futureTimeline.media) this.timeline.media = this.futureTimeline.media;
 
       //Grab next page if there is one
       if (this.futureTimeline?.nextPageToken) {
@@ -87,13 +87,13 @@ export class HomeComponent implements OnInit {
     }
   }
 
-  imageModalDismissed() : boolean {
+  imageModalDismissed(): boolean {
     document.body.style.overflowY = "scroll";
-    return(true);
+    return (true);
   }
 
   openImageModal(media: Media) {
-    this.modalRef = this.modalService.open(ImageModalComponent, { centered: true, beforeDismiss: this.imageModalDismissed});
+    this.modalRef = this.modalService.open(ImageModalComponent, { centered: true, beforeDismiss: this.imageModalDismissed });
     this.modalRef.componentInstance.timeline = this.timeline;
     this.modalRef.componentInstance.media = media;
     this.modalRef.componentInstance.filters = this.filters;
@@ -101,10 +101,15 @@ export class HomeComponent implements OnInit {
   }
 
   searchUser() { //TODO: Validate the form
-    this.states.loading = true;
     const handleRegex = new RegExp('^@(\\w){1,15}$'); //support up to 3 tags/topics
     const tagRegex = new RegExp('^(-?((@|#|$)|((from|to|is|has):))?(\\w){1,15} ?){1,3}$'); //support up to 3 tags/topics
-    var route = handleRegex.test(this.query) ? "/" + this.query : tagRegex.test(this.query) ? "tags/" + encodeURIComponent(this.query) : "/";
-    this.router.navigateByUrl(route);
+
+    if (handleRegex.test(this.query) || tagRegex.test(this.query)) {
+      this.states.loading = true;
+      var route = handleRegex.test(this.query) ? "/" + this.query : tagRegex.test(this.query) ? "tags/" + encodeURIComponent(this.query) : "/";
+      this.router.navigateByUrl(route);
+    } else {
+      console.log("invalid search");
+    }
   }
 }
