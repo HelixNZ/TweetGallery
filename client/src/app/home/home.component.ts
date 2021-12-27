@@ -1,4 +1,4 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { TwitterService } from '../_services/twitter.service';
 import { Timeline } from '../_models/timeline';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -14,12 +14,10 @@ import { Media } from '../_models/media';
 export class HomeComponent implements OnInit {
   timeline?: Timeline;
   futureTimeline?: Timeline;
-  model: any = [];
   modalRef?: NgbModalRef;
-
-  //image swipe left/right
-  swipeCoord?: [number, number];
-  swipeTime?: number;
+  states = {multiplePages: false, loading: false, loadingNextPage: false};
+  query = "";
+  filters = {video: true, photo: true, nsfw: false};
 
   constructor(
     private twitterService: TwitterService,
@@ -30,9 +28,9 @@ export class HomeComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.model.showPhotos = true;
-    this.model.showVideos = true;
-    this.model.nsfw = localStorage.getItem("showSensitiveTweets") == "true" ? true : false;
+    this.filters.photo = true;
+    this.filters.video = true;
+    this.filters.nsfw = localStorage.getItem("showSensitiveTweets") == "true" ? true : false;
 
     this.route.data.subscribe(routeData => {
       var handle = (routeData.handle as string);
@@ -41,19 +39,19 @@ export class HomeComponent implements OnInit {
       var query = handle ? handle : tags ? tags : undefined;
 
       if(query) {
-        this.model.handle = query; //temporary while we load the timeline
-        this.model.loadingTimeline = true;
+        this.query = query; //temporary while we load the timeline
+        this.states.loading = true;
         
         this.twitterService.getTimeline(query).subscribe(timeline => {
           this.timeline = timeline;
-          this.model.handle = this.timeline.query;
-          this.model.loadingTimeline = false; //Don't show loading for future, load silently
+          this.query = this.timeline.query;
+          this.states.loading = false; //Don't show loading for future, load silently
 
           //Peek & store future?
           if(timeline.nextPageToken && query){
             this.twitterService.getTimeline(query, timeline.nextPageToken).subscribe(futureTimeline => {
               this.futureTimeline = futureTimeline;
-              if(futureTimeline.media) this.model.multiplePages = true; //Prevents the EOF message being displayed for single page results
+              if(futureTimeline.media) this.states.multiplePages = true; //Prevents the EOF message being displayed for single page results
             });
           }
         });
@@ -63,13 +61,13 @@ export class HomeComponent implements OnInit {
 
   enableExplicit() {
     //TODO: Display warning message (Are you over 18 years old? before allowing this to be set true)
-    this.model.nsfw = !this.model.nsfw;
-    localStorage.setItem("showSensitiveTweets", this.model.nsfw? "true": "false");
+    this.filters.nsfw = !this.filters.nsfw;
+    localStorage.setItem("showSensitiveTweets", this.filters.nsfw? "true": "false");
   }
 
   getNextPage() {
     if(this.timeline && this.futureTimeline?.media) {
-      this.model.loadingNextPage = true;
+      this.states.loading = true;
 
       //Use preloaded timeline
       if(this.timeline.media && this.futureTimeline.media) this.timeline.media = [...this.timeline.media, ...this.futureTimeline.media];
@@ -79,12 +77,12 @@ export class HomeComponent implements OnInit {
       if (this.futureTimeline?.nextPageToken) {
         this.twitterService.getTimeline(this.timeline.query, this.futureTimeline.nextPageToken).subscribe(timeline => {
           this.futureTimeline = timeline;
-          this.model.loadingNextPage = false;
+          this.states.loading = false;
         });
       }
       else {
         this.futureTimeline = undefined;
-        this.model.loadingNextPage = false;
+        this.states.loading = false;
       }
     }
   }
@@ -96,82 +94,17 @@ export class HomeComponent implements OnInit {
 
   openImageModal(media: Media) {
     this.modalRef = this.modalService.open(ImageModalComponent, { centered: true, beforeDismiss: this.imageModalDismissed});
-    this.modalRef.componentInstance.setMedia(media);
+    this.modalRef.componentInstance.timeline = this.timeline;
+    this.modalRef.componentInstance.media = media;
+    this.modalRef.componentInstance.filters = this.filters;
     document.body.style.overflowY = "hidden";
   }
 
   searchUser() { //TODO: Validate the form
-    this.model.loadingTimeline = true;
+    this.states.loading = true;
     const handleRegex = new RegExp('^@(\\w){1,15}$'); //support up to 3 tags/topics
     const tagRegex = new RegExp('^(-?((@|#|$)|((from|to|is|has):))?(\\w){1,15} ?){1,3}$'); //support up to 3 tags/topics
-    var route = handleRegex.test(this.model.handle) ? "/" + this.model.handle : tagRegex.test(this.model.handle) ? "tags/" + encodeURIComponent(this.model.handle) : "/";
+    var route = handleRegex.test(this.query) ? "/" + this.query : tagRegex.test(this.query) ? "tags/" + encodeURIComponent(this.query) : "/";
     this.router.navigateByUrl(route);
-  }
-
-  openLink(url?: string) {
-    if (url) window.open(url, "_blank");
-  }
-
-  updateMediaModal(dir: number) {
-    var componentInstance = this.modalRef?.componentInstance;
-
-    if (dir !== 0 && 
-      componentInstance?.getCurrentMedia() !== undefined &&  //Modal open and has an image already (used for getting next/prev from current)
-      this.timeline?.media) { //Timeline has media, used for edge-case and strict
-
-      var media = this.timeline.media;
-      var viewing = componentInstance.getCurrentMedia();
-      var index = media.findIndex(x => x === viewing);
-
-      //If user wants to cycle in a direction
-      //  and if we are showing either media type.
-      //This is an edge case but if the user somehow opens the modal
-      //  with both filters off, they can lock up their browser....
-      if (dir !== 0 && (this.model.showPhotos || this.model.showVideos)) {
-        while (true) {
-          index += dir;
-          if (index < 0) index = media.length - 1;
-          else if (media && index >= media.length) index = 0;
-
-          if (media[index].type === 'photo' && this.model.showPhotos) break;
-          if (media[index].type !== 'photo' && this.model.showVideos) break;
-        }
-
-        if (viewing !== media[index]) componentInstance.setMedia(media[index]);
-      }
-    }
-  }
-
-  @HostListener('window:keyup', ['$event'])
-  public keyup(event: KeyboardEvent): any {
-    var push = (event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0);
-    this.updateMediaModal(push);
-  }
-
-  @HostListener('window:touchstart', ['$event'])
-  public swipe_start(event: TouchEvent): any {
-    const coord: [number, number] = [event.changedTouches[0].clientX, event.changedTouches[0].clientY];
-    const time = new Date().getTime();
-
-    this.swipeCoord = coord;
-    this.swipeTime = time;
-  }
-
-  @HostListener('window:touchend', ['$event'])
-  public swipe_end(event: TouchEvent): any {
-    if (this.swipeTime && this.swipeCoord) {
-      const coord: [number, number] = [event.changedTouches[0].clientX, event.changedTouches[0].clientY];
-      const time = new Date().getTime();
-
-      const direction = [coord[0] - this.swipeCoord[0], coord[1] - this.swipeCoord[1]];
-      const duration = time - this.swipeTime;
-
-      if (duration < 1000 //
-        && Math.abs(direction[0]) > 30 // Long enough
-        && Math.abs(direction[0]) > Math.abs(direction[1] * 3)) { // Horizontal enough
-        const swipe = direction[0] < 0 ? 1 : -1;
-        this.updateMediaModal(swipe);
-      }
-    }
   }
 }

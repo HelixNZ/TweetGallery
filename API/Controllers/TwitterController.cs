@@ -91,7 +91,7 @@ public class TwitterController : BaseApiController
 
 			//Find matching tweet
 			var matchedTweet = result.data.First(tweet => tweet.attachments != null && tweet.attachments.media_keys.Contains(media.media_key));
-			newMedia.TweetUrl = "https://twitter.com/" + user.Username + "/status/" + matchedTweet.id;
+			newMedia.TweetUrl = "https://twitter.com/" + user.Username.Replace("@", "") + "/status/" + matchedTweet.id;
 			newMedia.PossiblySensitive = matchedTweet.possibly_sensitive; //nsfw
 
 			//Append

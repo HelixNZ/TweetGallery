@@ -10,6 +10,7 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { HomeComponent } from './home/home.component';
 import { ImageModalComponent } from './modals/image-modal/image-modal.component';
 import { MiddleClickDirective } from './_directives/middle-click.directive';
+import { GalleryTileComponent } from './gallery-tile/gallery-tile.component';
 
 @NgModule({
   declarations: [
@@ -17,6 +18,7 @@ import { MiddleClickDirective } from './_directives/middle-click.directive';
     HomeComponent,
     ImageModalComponent,
     MiddleClickDirective,
+    GalleryTileComponent,
   ],
   imports: [
     BrowserModule,
