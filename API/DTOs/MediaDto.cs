@@ -6,6 +6,7 @@ public class MediaDto
     public string MediaUrl { get; set; } //full-size, photo only. If non-photo, mediaurl & thumbnailurl are equal
     public string ThumbnailUrl { get; set; } //150x150, equals mediaurl thumbnail or media preview (video)
     public string Type { get; set; } //photo, animated_gif, video
+    public bool PossiblySensitive { get; set; } //potentially NSFW
 
     //GIFS and videos are stored as mp4 with the following, but require v1 api to get the filename
 	//		  type                   type      media_key	          resolution    id

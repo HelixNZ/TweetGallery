@@ -3,8 +3,8 @@
 		<div class="col nav-col">
 			<div class="card p-2 mt-5 mb-5">
 				<form role="form" class="form-inline" (ngSubmit)="searchUser()">
-					<i class="fa fa-at label-at"></i>
-					<input type="text" [(ngModel)]="model.handle" class="form-control flex-grow-1" name="handle" placeholder="Handle" autocomplete="off" />
+					<i class="fa fa-search label-at"></i>
+					<input type="text" [(ngModel)]="model.handle" class="form-control flex-grow-1" name="handle" placeholder="@, # or keyword" autocomplete="off" />
 					<button [disabled]="!model.handle || model.loadingTimeline || (model.handle | lowercase) === (timeline?.username | lowercase)"
 							type="submit" class="btn btn-primary ml-2 mr-2" 
 							[ngClass]="{'btn-secondary': !model.handle}">
@@ -24,6 +24,12 @@
 								(click)="model.showVideos = !model.showVideos; !model.showVideos && !model.showPhotos ? model.showPhotos = true : model.showPhotos = model.showPhotos">
 							<i class="fa fa-film"></i>
 						</label>
+						<label ngbButtonLabel [ngClass]="{'btn-secondary': !model.nsfw || !timeline?.media, 'btn-danger': model.nsfw}">
+							<input [disabled]="!timeline?.media" name="nsfw" type="checkbox"
+								ngbButton [(ngModel)]="model.nsfw"
+								(click)="enableExplicit()">
+							18+
+						</label>
 					</div>
 				</form>
 			</div>
@@ -35,7 +41,7 @@
 	<div class="row justify-content-center">
 		<span *ngIf="model.loadingTimeline" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
 		<ng-container *ngFor="let media of timeline?.media">
-			<div class="col-sm-0" *ngIf="media.type === 'photo' && model.showPhotos || media.type !== 'photo' && model.showVideos">
+			<div class="col-sm-0" *ngIf="(media.type === 'photo' && model.showPhotos || media.type !== 'photo' && model.showVideos) && (!media.possiblySensitive || media.possiblySensitive && model.nsfw)">
 				<div class="card-img-wrapper p-1">
 					<a *ngIf="media.type !== 'photo'" href="{{media.tweetUrl}}" target="_blank">
 						<img src='{{media.thumbnailUrl}}' alt='{{media.thumbnailUrl}}' class="card-img" draggable="false" />

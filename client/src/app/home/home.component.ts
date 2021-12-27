@@ -14,6 +14,7 @@ import { Media } from '../_models/media';
 export class HomeComponent implements OnInit {
   timeline?: Timeline;
   futureTimeline?: Timeline;
+  isTagSearch: boolean = false;
   model: any = [];
   modalRef?: NgbModalRef;
 
@@ -32,10 +33,14 @@ export class HomeComponent implements OnInit {
   ngOnInit(): void {
     this.model.showPhotos = true;
     this.model.showVideos = true;
+    this.model.nsfw = localStorage.getItem("showSensitiveTweets") == "true" ? true : false;
 
     this.route.data.subscribe(routeData => {
+      this.isTagSearch = false;
       var username = (routeData.username as string);
-      if(username){
+      var tags = (routeData.tags as string);
+
+      if(username && username != undefined){
         this.model.handle = username; //temporary while we load the timeline
         this.model.loadingTimeline = true;
 
@@ -43,8 +48,6 @@ export class HomeComponent implements OnInit {
           this.timeline = timeline;
           this.model.handle = this.timeline.username;
           this.model.loadingTimeline = false; //Don't show loading for future, load silently
-
-          this.buildLinkPreview();
 
           //Peek & store future?
           if(timeline.nextPageToken){
@@ -55,31 +58,33 @@ export class HomeComponent implements OnInit {
           }
         });
       }
+
+      if(tags && tags != undefined){
+        this.isTagSearch = true;
+        this.model.handle = decodeURIComponent(tags); //temporary while we load the timeline
+        this.model.loadingTimeline = true;
+
+        this.twitterService.searchTags(tags).subscribe(timeline => {
+          this.timeline = timeline;
+          this.model.handle = decodeURIComponent(this.timeline.username);
+          this.model.loadingTimeline = false; //Don't show loading for future, load silently
+
+          //Peek & store future?
+          if(timeline.nextPageToken){
+            this.twitterService.searchTags(tags, timeline.nextPageToken).subscribe(futureTimeline => {
+              this.futureTimeline = futureTimeline;
+              if(futureTimeline.media) this.model.multiplePages = true; //Prevents the EOF message being displayed for single page results
+            });
+          }
+        });
+      }
     });
   }
 
-  buildLinkPreview() {
-    if(this.timeline) {
-      var ogTitle = document.createElement('meta');
-      ogTitle.setAttribute("property", "og:title");
-      ogTitle.setAttribute("content", "Twitter gallery for @" + this.timeline.username);
-      document.head.appendChild(ogTitle);
-
-      var ogUrl = document.createElement('meta');
-      ogUrl.setAttribute("property", "og:url");
-      ogUrl.setAttribute("content", "https://twittergallery.herokuapp.com/" + this.timeline.username);
-      document.head.appendChild(ogUrl);
-
-      var ogDesc = document.createElement('meta');
-      ogDesc.setAttribute("property", "og:description");
-      ogDesc.setAttribute("content", "Click to view the gallery of @" + this.timeline.username);
-      document.head.appendChild(ogDesc);
-
-      var ogImage = document.createElement('meta');
-      ogImage.setAttribute("property", "og:image");
-      ogImage.setAttribute("content", this.timeline.profileImg);
-      document.head.appendChild(ogImage);
-    }
+  enableExplicit() {
+    //TODO: Display warning message (Are you over 18 years old? before allowing this to be set true)
+    this.model.nsfw = !this.model.nsfw;
+    localStorage.setItem("showSensitiveTweets", this.model.nsfw? "true": "false");
   }
 
   getNextPage() {
@@ -87,14 +92,24 @@ export class HomeComponent implements OnInit {
       this.model.loadingNextPage = true;
 
       //Use preloaded timeline
-      this.timeline.media = [...this.timeline.media, ...this.futureTimeline.media];
+      if(this.timeline.media && this.futureTimeline.media) this.timeline.media = [...this.timeline.media, ...this.futureTimeline.media];
+      else if(this.futureTimeline.media) this.timeline.media = this.futureTimeline.media;
 
       //Grab next page if there is one
       if (this.futureTimeline?.nextPageToken) {
-        this.twitterService.getUserTimeline(this.timeline.username, this.futureTimeline.nextPageToken).subscribe(timeline => {
-          this.futureTimeline = timeline;
-          this.model.loadingNextPage = false;
-        });
+        if(this.isTagSearch) {
+          this.twitterService.searchTags(this.timeline.username, this.futureTimeline.nextPageToken).subscribe(timeline => {
+            console.log(timeline);
+            this.futureTimeline = timeline;
+            this.model.loadingNextPage = false;
+          });
+        }
+        else{
+          this.twitterService.getUserTimeline(this.timeline.username, this.futureTimeline.nextPageToken).subscribe(timeline => {
+            this.futureTimeline = timeline;
+            this.model.loadingNextPage = false;
+          });
+        }
       }
       else {
         this.futureTimeline = undefined;
@@ -103,15 +118,24 @@ export class HomeComponent implements OnInit {
     }
   }
 
+  imageModalDismissed() : boolean {
+    document.body.style.overflowY = "scroll";
+    return(true);
+  }
+
   openImageModal(media: Media) {
-    this.modalRef = this.modalService.open(ImageModalComponent, { centered: true });
+    this.modalRef = this.modalService.open(ImageModalComponent, { centered: true, beforeDismiss: this.imageModalDismissed});
     this.modalRef.componentInstance.imageLoaded = false;
     this.modalRef.componentInstance.media = media;
+    document.body.style.overflowY = "hidden";
   }
 
   searchUser() { //TODO: Validate the form
     this.model.loadingTimeline = true;
-    this.router.navigateByUrl('/' + this.model.handle);
+    const handleRegex = new RegExp('^@(\\w){1,15}$'); //support up to 3 tags/topics
+    const tagRegex = new RegExp('^(-?((@|#|$)|((from|to|is|has):))?(\\w){1,15} ?){1,3}$'); //support up to 3 tags/topics
+    var route = handleRegex.test(this.model.handle) ? "/" + this.model.handle : tagRegex.test(this.model.handle) ? "tags/" + encodeURIComponent(this.model.handle) : "/";
+    this.router.navigateByUrl(route);
   }
 
   openLink(url?: string) {

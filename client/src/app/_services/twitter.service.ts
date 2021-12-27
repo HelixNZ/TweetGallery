@@ -14,4 +14,8 @@ export class TwitterService {
   getUserTimeline(username: string, paginationToken?: string) {
     return this.http.get<Timeline>(this.baseUrl + "timeline/" + username + (paginationToken ? '?token=' + paginationToken : ''));
   }
+
+  searchTags(tags: string, paginationToken?: string) {
+    return this.http.get<Timeline>(this.baseUrl + "tags/" + encodeURIComponent(tags) + (paginationToken ? '?token=' + paginationToken : ''));
+  }
 }

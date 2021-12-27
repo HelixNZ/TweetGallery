@@ -3,4 +3,5 @@ export interface Media {
 	mediaUrl: string;
 	thumbnailUrl: string;
 	type: string; //animated_gif, photo, video
+	possiblySensitive: boolean;
 }
