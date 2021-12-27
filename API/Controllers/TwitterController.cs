@@ -49,8 +49,8 @@ public class TwitterController : BaseApiController
 	{
 		//Get the timeline for the user, 100 results
 		var user = await GetUserByUsername(username);
-		if (user == null) return Ok(new TimelineDto { Username = username, Error = "Twitter handle doesn't exist!" }); //Could be api limit or missing user
-		if (user.Protected) return Ok(new TimelineDto { Username = username, Error = "Twitter account isn't public :c" }); //Protected account
+		if (user == null) return Ok(new TimelineDto { Query = username, Error = "Twitter handle doesn't exist!" }); //Could be api limit or missing user
+		if (user.Protected) return Ok(new TimelineDto { Query = username, Error = "Twitter account isn't public :c" }); //Protected account
 
 		var requestUrl = "users/" + user.Id + "/tweets" +
 					"?max_results=100&expansions=attachments.media_keys" +
@@ -66,12 +66,12 @@ public class TwitterController : BaseApiController
 		var result = await response.Content.ReadFromJsonAsync<Timeline>();
 
 		//If no media returned, and pagination token wasn't included, then user had no media off the bat, so assume nothing of interest
-		if (token == null && result.includes == null) return Ok(new TimelineDto { Username = user.Username, Error = user.Username + " hasn't posted any images recently :(" });
+		if (token == null && result.includes == null) return Ok(new TimelineDto { Query = user.Username, Error = user.Username + " hasn't posted any images recently :(" });
 
 		//Create timeline
 		var timeline = new TimelineDto
 		{
-			Username = user.Username,
+			Query = user.Username,
 			NextPageToken = result.meta.oldest_id //Use oldest ID instead of pagination token
 		};
 
@@ -120,12 +120,12 @@ public class TwitterController : BaseApiController
 		var result = await response.Content.ReadFromJsonAsync<Timeline>();
 
 		//If no media returned, and pagination token wasn't included, then user had no media off the bat, so assume nothing of interest
-		if (token == null && result.includes == null) return Ok(new TimelineDto { Username = Uri.UnescapeDataString(tag), Error = "No media found for " + Uri.UnescapeDataString(tag) + " in the past 7 days" });
+		if (token == null && result.includes == null) return Ok(new TimelineDto { Query = Uri.UnescapeDataString(tag), Error = "No media found for " + Uri.UnescapeDataString(tag) + " in the past 7 days" });
 
 		//Create timeline
 		var timeline = new TimelineDto
 		{
-			Username = Uri.UnescapeDataString(tag),
+			Query = Uri.UnescapeDataString(tag),
 			NextPageToken = result.meta.oldest_id
 		};
 

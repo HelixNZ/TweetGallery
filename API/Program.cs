@@ -5,7 +5,8 @@ using Microsoft.AspNetCore.HttpOverrides;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddHttpsRedirection(options => { options.HttpsPort = 5001; });
+//TODO: Fix issue where heroku won't route to HTTPS when not at route, the following line causes infinite redirect
+//builder.Services.AddHttpsRedirection(options => { options.HttpsPort = 443; });
 builder.Services.Configure<TwitterSettings>(builder.Configuration.GetSection("TwitterSettings"));
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {

@@ -5,7 +5,7 @@
 				<form role="form" class="form-inline" (ngSubmit)="searchUser()">
 					<i class="fa fa-search label-at"></i>
 					<input type="text" [(ngModel)]="model.handle" class="form-control flex-grow-1" name="handle" placeholder="@, # or keyword" autocomplete="off" />
-					<button [disabled]="!model.handle || model.loadingTimeline || (model.handle | lowercase) === (timeline?.username | lowercase)"
+					<button [disabled]="!model.handle || model.loadingTimeline || (model.handle | lowercase) === (timeline?.query | lowercase)"
 							type="submit" class="btn btn-primary ml-2 mr-2" 
 							[ngClass]="{'btn-secondary': !model.handle}">
 						<i *ngIf="!model.loadingTimeline" class="fa fa-search"></i>
@@ -50,12 +50,10 @@
 						alt='{{media.thumbnailUrl}}' class="card-img" (click)="openImageModal(media)"
 						(middleclick)="openLink(media.mediaUrl)" draggable="false" />
 					<span class="media-type">
-						<i class="fa"
-							[ngClass]="{'fa-image': media.type === 'photo', 'fa-film': media.type !== 'photo'}"></i>
+						<i class="fa" [ngClass]="{'fa-image': media.type === 'photo', 'fa-film': media.type !== 'photo'}"></i>
 					</span>
 					<span class="media-visit">
-						<a href='{{media.tweetUrl}}' target="_blank"
-							[ngClass]="{'forced-ext-link': media.type !== 'photo'}">
+						<a href='{{media.tweetUrl}}' target="_blank" [ngClass]="{'forced-ext-link': media.type !== 'photo'}">
 							<i class="fa fa-external-link-square"></i>
 						</a>
 					</span>

@@ -11,11 +11,9 @@ export class TwitterService {
 
   constructor(private http: HttpClient) { }
 
-  getUserTimeline(username: string, paginationToken?: string) {
-    return this.http.get<Timeline>(this.baseUrl + "timeline/" + username + (paginationToken ? '?token=' + paginationToken : ''));
-  }
-
-  searchTags(tags: string, paginationToken?: string) {
-    return this.http.get<Timeline>(this.baseUrl + "tags/" + encodeURIComponent(tags) + (paginationToken ? '?token=' + paginationToken : ''));
+  getTimeline(query: string, paginationToken?: string) {
+    const handleRegex = new RegExp('^@(\\w){1,15}$'); //Just check if it's a handle, otherwise go for tags
+    var endpoint = handleRegex.test(query) ? "timeline/" + query : "tags/" + encodeURIComponent(query);
+    return this.http.get<Timeline>(this.baseUrl + endpoint + (paginationToken ? '?token=' + paginationToken : ''));
   }
 }

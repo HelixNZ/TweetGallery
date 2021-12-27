@@ -14,7 +14,6 @@ import { Media } from '../_models/media';
 export class HomeComponent implements OnInit {
   timeline?: Timeline;
   futureTimeline?: Timeline;
-  isTagSearch: boolean = false;
   model: any = [];
   modalRef?: NgbModalRef;
 
@@ -36,42 +35,23 @@ export class HomeComponent implements OnInit {
     this.model.nsfw = localStorage.getItem("showSensitiveTweets") == "true" ? true : false;
 
     this.route.data.subscribe(routeData => {
-      this.isTagSearch = false;
-      var username = (routeData.username as string);
+      var handle = (routeData.handle as string);
       var tags = (routeData.tags as string);
 
-      if(username && username != undefined){
-        this.model.handle = username; //temporary while we load the timeline
-        this.model.loadingTimeline = true;
+      var query = handle ? handle : tags ? tags : undefined;
 
-        this.twitterService.getUserTimeline(username).subscribe(timeline => {
+      if(query) {
+        this.model.handle = query; //temporary while we load the timeline
+        this.model.loadingTimeline = true;
+        
+        this.twitterService.getTimeline(query).subscribe(timeline => {
           this.timeline = timeline;
-          this.model.handle = this.timeline.username;
+          this.model.handle = this.timeline.query;
           this.model.loadingTimeline = false; //Don't show loading for future, load silently
 
           //Peek & store future?
-          if(timeline.nextPageToken){
-            this.twitterService.getUserTimeline(username, timeline.nextPageToken).subscribe(futureTimeline => {
-              this.futureTimeline = futureTimeline;
-              if(futureTimeline.media) this.model.multiplePages = true; //Prevents the EOF message being displayed for single page results
-            });
-          }
-        });
-      }
-
-      if(tags && tags != undefined){
-        this.isTagSearch = true;
-        this.model.handle = decodeURIComponent(tags); //temporary while we load the timeline
-        this.model.loadingTimeline = true;
-
-        this.twitterService.searchTags(tags).subscribe(timeline => {
-          this.timeline = timeline;
-          this.model.handle = decodeURIComponent(this.timeline.username);
-          this.model.loadingTimeline = false; //Don't show loading for future, load silently
-
-          //Peek & store future?
-          if(timeline.nextPageToken){
-            this.twitterService.searchTags(tags, timeline.nextPageToken).subscribe(futureTimeline => {
+          if(timeline.nextPageToken && query){
+            this.twitterService.getTimeline(query, timeline.nextPageToken).subscribe(futureTimeline => {
               this.futureTimeline = futureTimeline;
               if(futureTimeline.media) this.model.multiplePages = true; //Prevents the EOF message being displayed for single page results
             });
@@ -97,19 +77,10 @@ export class HomeComponent implements OnInit {
 
       //Grab next page if there is one
       if (this.futureTimeline?.nextPageToken) {
-        if(this.isTagSearch) {
-          this.twitterService.searchTags(this.timeline.username, this.futureTimeline.nextPageToken).subscribe(timeline => {
-            console.log(timeline);
-            this.futureTimeline = timeline;
-            this.model.loadingNextPage = false;
-          });
-        }
-        else{
-          this.twitterService.getUserTimeline(this.timeline.username, this.futureTimeline.nextPageToken).subscribe(timeline => {
-            this.futureTimeline = timeline;
-            this.model.loadingNextPage = false;
-          });
-        }
+        this.twitterService.getTimeline(this.timeline.query, this.futureTimeline.nextPageToken).subscribe(timeline => {
+          this.futureTimeline = timeline;
+          this.model.loadingNextPage = false;
+        });
       }
       else {
         this.futureTimeline = undefined;
@@ -125,8 +96,7 @@ export class HomeComponent implements OnInit {
 
   openImageModal(media: Media) {
     this.modalRef = this.modalService.open(ImageModalComponent, { centered: true, beforeDismiss: this.imageModalDismissed});
-    this.modalRef.componentInstance.imageLoaded = false;
-    this.modalRef.componentInstance.media = media;
+    this.modalRef.componentInstance.setMedia(media);
     document.body.style.overflowY = "hidden";
   }
 
@@ -145,14 +115,13 @@ export class HomeComponent implements OnInit {
   updateMediaModal(dir: number) {
     var componentInstance = this.modalRef?.componentInstance;
 
-    if (dir !== 0 && componentInstance?.media &&  //Modal open and has an image already (used for getting next/prev from current)
+    if (dir !== 0 && 
+      componentInstance?.getCurrentMedia() !== undefined &&  //Modal open and has an image already (used for getting next/prev from current)
       this.timeline?.media) { //Timeline has media, used for edge-case and strict
-      //componentInstance.imageLoaded) { //Only proceed if image loaded already, otherwise ignore request
-
-      componentInstance.imageLoaded = false;
 
       var media = this.timeline.media;
-      var index = media.findIndex(x => x === componentInstance.media);
+      var viewing = componentInstance.getCurrentMedia();
+      var index = media.findIndex(x => x === viewing);
 
       //If user wants to cycle in a direction
       //  and if we are showing either media type.
@@ -168,9 +137,7 @@ export class HomeComponent implements OnInit {
           if (media[index].type !== 'photo' && this.model.showVideos) break;
         }
 
-        //Fix for infinite load
-        if (componentInstance.media === media[index]) componentInstance.imageLoaded = true;
-        else componentInstance.media = media[index];
+        if (viewing !== media[index]) componentInstance.setMedia(media[index]);
       }
     }
   }
