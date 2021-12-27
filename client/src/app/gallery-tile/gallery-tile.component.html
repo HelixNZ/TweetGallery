@@ -1,20 +1,21 @@
-<div class="col-sm-0" *ngIf="(media?.type === 'photo' && filters.photo || media?.type !== 'photo' && filters.video) && (!media?.possiblySensitive || media?.possiblySensitive && filters.nsfw)">
+<div class="col-sm-0">
 	<div class="card-img-wrapper p-1">
-		<a *ngIf="media?.type !== 'photo'" href="{{media?.tweetUrl}}" target="_blank">
+		<a *ngIf='media?.type !== "photo"' href="{{media?.tweetUrl}}" target="_blank">
 			<img src='{{media?.thumbnailUrl}}' 
 				alt='{{media?.thumbnailUrl}}' 
 				class="card-img" 
 				draggable="false" 
 				(load)="imageLoaded = true" />
 		</a>
-		<img *ngIf="media?.type === 'photo'"
+
+		<img *ngIf='media?.type === "photo"'
 			src='{{media?.thumbnailUrl}}'
-			alt='{{media?.thumbnailUrl}}' 
-			class="card-img" 
+			alt='{{media?.thumbnailUrl}}'
+			class="card-img"
+			draggable="false"
 			(click)="parent.openImageModal(media)"
 			(middleclick)="openLink(media?.mediaUrl)" 
-			draggable="false"
-			(load)="imageLoaded = true"  />
+			(load)="imageLoaded = true" />
 			
 		<span class="media-type">
 			<i class="fa" [ngClass]="{'fa-image': media?.type === 'photo', 'fa-film': media?.type !== 'photo'}"></i>

@@ -1,4 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
+import { Filters } from '../_models/filters';
 import { Media } from '../_models/media';
 
 @Component({
@@ -9,8 +10,7 @@ import { Media } from '../_models/media';
 export class GalleryTileComponent implements OnInit {
   @Input() parent: any;
   @Input() media?: Media;
-  @Input() filters = {video: true, photo: true, nsfw: false};
-  imageLoaded: boolean = false;
+  imageLoaded: boolean = false; //Flag for if the image has loaded
 
   constructor() { }
 

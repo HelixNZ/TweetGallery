@@ -7,11 +7,8 @@ import { Observable, of } from 'rxjs';
 })
 export class HandleResolver implements Resolve<string | null> {
   resolve(route: ActivatedRouteSnapshot): Observable<string | null> {
-    const regex = new RegExp('^@(\\w){1,15}$');
-    var handle: string = route.paramMap.get('handle') || '';
-
-    //Test if it's a valid handle
-    if (regex.test(handle) || regex.test("@" + handle)) return of(handle);
-    return of(null); //Invalid handle, empty out and don't register it
+    var handle = route.paramMap.get('handle');
+    if(handle && !handle.startsWith("@")) handle = "@" + handle;
+    return of(handle);
   }
 }

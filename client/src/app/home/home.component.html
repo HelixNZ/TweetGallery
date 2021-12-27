@@ -16,19 +16,17 @@
 						<label class="btn-primary" ngbButtonLabel [ngClass]="{'btn-secondary': !filters.photo || !timeline?.media}">
 							<input [disabled]="!timeline?.media" name="showphotos" type="checkbox"
 								ngbButton [(ngModel)]="filters.photo"
-								(click)="filters.photo = !filters.photo; !filters.photo && !filters.video ? filters.video = true : filters.video = filters.video">
+								(click)="togglePhotoFilter()">
 							<i class="fa fa-image"></i>
 						</label>
 						<label class="btn-primary" ngbButtonLabel [ngClass]="{'btn-secondary': !filters.video || !timeline?.media}">
 							<input [disabled]="!timeline?.media" name="showvideos" type="checkbox"
 								ngbButton [(ngModel)]="filters.video"
-								(click)="filters.video = !filters.video; !filters.video && !filters.photo ? filters.photo = true : filters.photo = filters.photo">
+								(click)="toggleVideoFilter()">
 							<i class="fa fa-film"></i>
 						</label>
 						<label ngbButtonLabel [ngClass]="{'btn-secondary': !filters.nsfw || !timeline?.media, 'btn-danger': filters.nsfw}">
-							<input [disabled]="!timeline?.media" name="nsfw" type="checkbox"
-								ngbButton [(ngModel)]="filters.nsfw"
-								(click)="enableExplicit()">
+							<input name="nsfw" type="checkbox" ngbButton [(ngModel)]="filters.nsfw" (click)="enableExplicit()">
 							18+
 						</label>
 					</div>
@@ -37,12 +35,14 @@
 		</div>
 	</div>
 
-	<h4 *ngIf="timeline?.error">{{timeline?.error}}</h4>
+	<ng-container *ngFor="let error of errors">
+		<h4>{{error}}</h4>
+	</ng-container>
 
 	<div class="row justify-content-center">
 		<span *ngIf="states.loading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
 		<ng-container *ngFor="let media of timeline?.media">
-			<app-gallery-tile [parent]='this' [media]='media' [filters]='filters'></app-gallery-tile>
+			<app-gallery-tile [parent]='this' [media]='media' *ngIf="shouldDisplay(media)"></app-gallery-tile>
 		</ng-container>
 	</div>
 

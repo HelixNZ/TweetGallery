@@ -1,5 +1,6 @@
-import { Component, HostListener, Input } from '@angular/core';
+import { Component, HostListener, Input, OnInit } from '@angular/core';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { Filters } from 'src/app/_models/filters';
 import { Media } from 'src/app/_models/media';
 import { Timeline } from 'src/app/_models/timeline';
 
@@ -8,15 +9,18 @@ import { Timeline } from 'src/app/_models/timeline';
   templateUrl: './image-modal.component.html',
   styleUrls: ['./image-modal.component.css']
 })
-export class ImageModalComponent {
+export class ImageModalComponent implements OnInit {
   @Input() timeline?: Timeline;
   @Input() media?: Media;
-  @Input() filters = {video: true, photo: true, nsfw: false};
+  @Input() filters: Filters = {video: true, photo: true, nsfw: false};
   imageLoaded: boolean = false;
   swipeCoord?: [number, number];
   swipeTime?: number;
 
   constructor(public modalService: NgbModal) { }
+
+  ngOnInit(): void {
+  }
 
   setMedia(media: Media) {
     this.imageLoaded = false;
