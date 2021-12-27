@@ -25,9 +25,10 @@
 								(click)="toggleVideoFilter()">
 							<i class="fa fa-film"></i>
 						</label>
-						<label ngbButtonLabel [ngClass]="{'btn-secondary': !filters.nsfw || !timeline?.media, 'btn-danger': filters.nsfw}">
-							<input name="nsfw" type="checkbox" ngbButton [(ngModel)]="filters.nsfw" (click)="enableExplicit()">
-							18+
+						<label style="display: grid;" ngbButtonLabel [ngClass]="{'btn-secondary': !filters.flaggedSensitive || !timeline?.media, 'btn-danger': filters.flaggedSensitive}">
+							<input name="flaggedSensitive" type="checkbox" ngbButton [(ngModel)]="filters.flaggedSensitive" (click)="toggleShowFlagged()">
+							<span style="font-size: small; margin: -3px; margin-top: -7px">Flagged</span>
+							<span style="font-size: small; margin: -3px; margin-bottom: -7px">Sensitive</span>
 						</label>
 					</div>
 				</form>

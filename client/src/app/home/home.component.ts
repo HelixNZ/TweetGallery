@@ -17,7 +17,7 @@ export class HomeComponent implements OnInit {
   futureTimeline?: Timeline;
   modalRef?: NgbModalRef;
   states = { multiplePages: false, loading: false, loadingNextPage: false };
-  filters: Filters = { video: true, photo: true, nsfw: false };
+  filters: Filters = { video: true, photo: true, flaggedSensitive: false };
   query = "";
   errors: string[] = [];
 
@@ -32,7 +32,7 @@ export class HomeComponent implements OnInit {
   ngOnInit(): void {
     this.filters.photo = true;
     this.filters.video = true;
-    this.filters.nsfw = localStorage.getItem("showSensitiveTweets") == "true" ? true : false;
+    this.filters.flaggedSensitive = localStorage.getItem("showSensitiveTweets") == "true" ? true : false;
 
     this.route.data.subscribe(routeData => {
       var handle = (routeData.handle as string);
@@ -77,10 +77,9 @@ export class HomeComponent implements OnInit {
     });
   }
 
-  enableExplicit() {
-    //TODO: Display warning message (Are you over 18 years old? before allowing this to be set true)
-    this.filters.nsfw = !this.filters.nsfw;
-    localStorage.setItem("showSensitiveTweets", this.filters.nsfw ? "true" : "false");
+  toggleShowFlagged() {
+    this.filters.flaggedSensitive = !this.filters.flaggedSensitive;
+    localStorage.setItem("showSensitiveTweets", this.filters.flaggedSensitive ? "true" : "false");
   }
 
   togglePhotoFilter() {
@@ -97,8 +96,8 @@ export class HomeComponent implements OnInit {
     var filtered = (media.type === 'photo' && this.filters.photo) ||
       (media.type !== 'photo' && this.filters.video);
 
-    //NSFW check
-    filtered = filtered && ((media.possiblySensitive && this.filters.nsfw) || !media.possiblySensitive);
+    //Flagged Sensitive check
+    filtered = filtered && ((media.possiblySensitive && this.filters.flaggedSensitive) || !media.possiblySensitive);
 
     return filtered;
   }
