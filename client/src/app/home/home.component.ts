@@ -1,10 +1,11 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { TwitterService } from '../_services/twitter.service';
 import { Timeline } from '../_models/timeline';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { ImageModalComponent } from '../modals/image-modal/image-modal.component';
 import { Media } from '../_models/media';
+import { Filters } from '../_models/filters';
 
 @Component({
   selector: 'app-home',
@@ -13,12 +14,12 @@ import { Media } from '../_models/media';
 })
 export class HomeComponent implements OnInit {
   timeline?: Timeline;
-  model: any = [];
+  futureTimeline?: Timeline;
   modalRef?: NgbModalRef;
-
-  //image swipe left/right
-  swipeCoord?: [number, number];
-  swipeTime?: number;
+  states = { multiplePages: false, loading: false, loadingNextPage: false };
+  filters: Filters = { video: true, photo: true, flaggedSensitive: false };
+  query = "";
+  errors: string[] = [];
 
   constructor(
     private twitterService: TwitterService,
@@ -29,116 +30,112 @@ export class HomeComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.model.showPhotos = true;
-    this.model.showVideos = true;
+    this.filters.photo = true;
+    this.filters.video = true;
+    this.filters.flaggedSensitive = localStorage.getItem("showSensitiveTweets") == "true" ? true : false;
 
     this.route.data.subscribe(routeData => {
-      var username = (routeData.username as string);
-      if(username){
-        this.model.handle = username;
-        this.model.loadingTimeline = true;
-        this.twitterService.getUserTimeline(username).subscribe(timeline => {
-          this.timeline = timeline;
-          this.model.handle = this.timeline.username;
-          this.model.loadingTimeline = false;
+      var handle = (routeData.handle as string);
+      var tags = (routeData.tags as string);
+
+      var query = handle ? handle : tags ? tags : undefined;
+
+      if (query) {
+        this.query = query; //temporary while we load the timeline
+        this.states.loading = true;
+
+        this.twitterService.getTimeline(query).subscribe(timeline => {
+          if (timeline) {
+            this.timeline = timeline;
+            this.query = this.timeline.query;
+
+            //Peek & store future?
+            if (timeline.nextPageToken && query) {
+              this.twitterService.getTimeline(query, timeline.nextPageToken).subscribe(futureTimeline => {
+                this.futureTimeline = futureTimeline;
+                if (futureTimeline?.media) this.states.multiplePages = true; //Prevents the EOF message being displayed for single page results
+              });
+            }
+          } else {
+            //No content
+            if (tags) this.errors.push("No media found for \"" + this.query + "\" in the past 7 days");
+            if (handle) this.errors.push(this.query + " hasn't posted any media recently");
+          }
+
+          this.states.loading = false;
+        }, error => {
+          if (error.status === 500) {
+            this.errors.push(error.error.message);
+            this.errors.push(error.error.details);
+          } else {
+            this.errors.push(error.error);
+          }
+
+          this.states.loading = false;
         });
       }
     });
   }
 
-  getNextPage() {
-    if (this.timeline?.nextPageToken) {
-      this.model.multiplePages = true; //used for alerting the user we've reached twitter's boundaries
-      this.model.loadingNextPage = true;
+  toggleShowFlagged() {
+    this.filters.flaggedSensitive = !this.filters.flaggedSensitive;
+    localStorage.setItem("showSensitiveTweets", this.filters.flaggedSensitive ? "true" : "false");
+  }
 
-      this.twitterService.getUserTimeline(this.timeline.username, this.timeline.nextPageToken).subscribe(timeline => {
-        if (this.timeline) { //required for strict
-          this.timeline.media = [...this.timeline.media, ...timeline.media];
-          this.timeline.nextPageToken = timeline.nextPageToken; //Store next token
-          this.model.loadingNextPage = false;
-        }
-      });
+  togglePhotoFilter() {
+    this.filters.photo = !this.filters.photo;
+    if (!this.filters.photo) this.filters.video = true;
+  }
+
+  toggleVideoFilter() {
+    this.filters.video = !this.filters.video;
+    if (!this.filters.video) this.filters.photo = true;
+  }
+
+  shouldDisplay(media: Media): boolean {
+    var filtered = (media.type === 'photo' && this.filters.photo) ||
+      (media.type !== 'photo' && this.filters.video);
+
+    //Flagged Sensitive check
+    filtered = filtered && ((media.possiblySensitive && this.filters.flaggedSensitive) || !media.possiblySensitive);
+
+    return filtered;
+  }
+
+  getNextPage() {
+    if (this.timeline && this.futureTimeline?.media) {
+      this.states.loadingNextPage = true;
+
+      //Use preloaded timeline
+      if (this.timeline.media && this.futureTimeline.media) this.timeline.media = [...this.timeline.media, ...this.futureTimeline.media];
+      else if (this.futureTimeline.media) this.timeline.media = this.futureTimeline.media;
+
+      //Grab next page if there is one
+      if (this.futureTimeline?.nextPageToken) {
+        this.twitterService.getTimeline(this.timeline.query, this.futureTimeline.nextPageToken).subscribe(timeline => {
+          this.futureTimeline = timeline;
+          this.states.loadingNextPage = false;
+        });
+      }
+      else {
+        this.futureTimeline = undefined;
+        this.states.loadingNextPage = false;
+      }
     }
   }
 
   openImageModal(media: Media) {
-    this.modalRef = this.modalService.open(ImageModalComponent, { centered: true });
-    this.modalRef.componentInstance.imageLoaded = false;
+    document.body.style.overflowY = "hidden"; //disable scroll
+    this.modalRef = this.modalService.open(ImageModalComponent, { animation: false, centered: true, beforeDismiss: () => { document.body.style.overflowY = ""; return (true); } });
+    this.modalRef.componentInstance.timeline = this.timeline;
+    this.modalRef.componentInstance.filters = this.filters;
     this.modalRef.componentInstance.media = media;
   }
 
-  searchUser() { //TODO: Validate the form
-    this.model.loadingUser = true;
-    this.router.navigateByUrl('/' + this.model.handle);
-  }
-
-  openLink(url?: string) {
-    if (url) window.open(url, "_blank");
-  }
-
-  updateMediaModal(dir: number) {
-    var componentInstance = this.modalRef?.componentInstance;
-
-    if (dir !== 0 && componentInstance?.media &&  //Modal open and has an image already (used for getting next/prev from current)
-      this.timeline?.media) { //Timeline has media, used for edge-case and strict
-      //componentInstance.imageLoaded) { //Only proceed if image loaded already, otherwise ignore request
-
-      componentInstance.imageLoaded = false;
-
-      var media = this.timeline.media;
-      var index = media.findIndex(x => x === componentInstance.media);
-
-      //If user wants to cycle in a direction
-      //  and if we are showing either media type.
-      //This is an edge case but if the user somehow opens the modal
-      //  with both filters off, they can lock up their browser....
-      if (dir !== 0 && (this.model.showPhotos || this.model.showVideos)) {
-        while (true) {
-          index += dir;
-          if (index < 0) index = media.length - 1;
-          else if (media && index >= media.length) index = 0;
-
-          if (media[index].type === 'photo' && this.model.showPhotos) break;
-          if (media[index].type !== 'photo' && this.model.showVideos) break;
-        }
-
-        //Fix for infinite load
-        if (componentInstance.media === media[index]) componentInstance.imageLoaded = true;
-        else componentInstance.media = media[index];
-      }
-    }
-  }
-
-  @HostListener('window:keyup', ['$event'])
-  public keyup(event: KeyboardEvent): any {
-    var push = (event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0);
-    this.updateMediaModal(push);
-  }
-
-  @HostListener('window:touchstart', ['$event'])
-  public swipe_start(event: TouchEvent): any {
-    const coord: [number, number] = [event.changedTouches[0].clientX, event.changedTouches[0].clientY];
-    const time = new Date().getTime();
-
-    this.swipeCoord = coord;
-    this.swipeTime = time;
-  }
-
-  @HostListener('window:touchend', ['$event'])
-  public swipe_end(event: TouchEvent): any {
-    if (this.swipeTime && this.swipeCoord) {
-      const coord: [number, number] = [event.changedTouches[0].clientX, event.changedTouches[0].clientY];
-      const time = new Date().getTime();
-
-      const direction = [coord[0] - this.swipeCoord[0], coord[1] - this.swipeCoord[1]];
-      const duration = time - this.swipeTime;
-
-      if (duration < 1000 //
-        && Math.abs(direction[0]) > 30 // Long enough
-        && Math.abs(direction[0]) > Math.abs(direction[1] * 3)) { // Horizontal enough
-        const swipe = direction[0] < 0 ? 1 : -1;
-        this.updateMediaModal(swipe);
-      }
-    }
+  searchUser() {
+    this.states.loading = true;
+    const handleRegex = new RegExp('^@(\\w{1,15})$'); //If matched to this, search by handle, otherwise tag search
+    var route = handleRegex.test(this.query) ? "/" + this.query : "tags/" + encodeURIComponent(this.query);
+    this.router.navigateByUrl(route);
   }
 }

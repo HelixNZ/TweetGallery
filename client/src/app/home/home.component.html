@@ -1,28 +1,34 @@
 <div class="container">
 	<div class="row">
-		<div class="col">
+		<div class="col nav-col">
 			<div class="card p-2 mt-5 mb-5">
 				<form role="form" class="form-inline" (ngSubmit)="searchUser()">
-					<i class="fa fa-at label-at"></i>
-					<input type="text" [(ngModel)]="model.handle" class="form-control flex-grow-1" name="handle" placeholder="Handle" autocomplete="off" />
-					<button [disabled]="!model.handle || model.loadingTimeline || (model.handle | lowercase) === (timeline?.username | lowercase)"
-							type="submit" class="btn btn-primary ml-2 mr-2" 
-							[ngClass]="{'btn-secondary': !model.handle}">
-						<i *ngIf="!model.loadingTimeline" class="fa fa-search"></i>
-						<span *ngIf="model.loadingTimeline" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-					</button>
+					<div class="btn-group">
+						<input type="text" [(ngModel)]="query" class="form-control" name="query" placeholder="@, # or keyword" autocomplete="off" />
+						<button [disabled]="!query || states.loading || (query | lowercase) === (timeline?.query | lowercase)"
+								type="submit" class="btn btn-primary" 
+								[ngClass]="{'btn-secondary': !query}">
+							<i *ngIf="!states.loading" class="fa fa-search"></i>
+							<span *ngIf="states.loading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+						</button>
+					</div>
 					<div class="btn-group btn-group-toggle">
-						<label class="btn-primary" ngbButtonLabel [ngClass]="{'btn-secondary': !model.showPhotos || !timeline?.media}">
+						<label class="btn-primary" ngbButtonLabel [ngClass]="{'btn-secondary': !filters.photo || !timeline?.media}">
 							<input [disabled]="!timeline?.media" name="showphotos" type="checkbox"
-								ngbButton [(ngModel)]="model.showPhotos"
-								(click)="model.showPhotos = !model.showPhotos; !model.showPhotos && !model.showVideos ? model.showVideos = true : model.showVideos = model.showVideos">
+								ngbButton [(ngModel)]="filters.photo"
+								(click)="togglePhotoFilter()">
 							<i class="fa fa-image"></i>
 						</label>
-						<label class="btn-primary" ngbButtonLabel [ngClass]="{'btn-secondary': !model.showVideos || !timeline?.media}">
+						<label class="btn-primary" ngbButtonLabel [ngClass]="{'btn-secondary': !filters.video || !timeline?.media}">
 							<input [disabled]="!timeline?.media" name="showvideos" type="checkbox"
-								ngbButton [(ngModel)]="model.showVideos"
-								(click)="model.showVideos = !model.showVideos; !model.showVideos && !model.showPhotos ? model.showPhotos = true : model.showPhotos = model.showPhotos">
+								ngbButton [(ngModel)]="filters.video"
+								(click)="toggleVideoFilter()">
 							<i class="fa fa-film"></i>
+						</label>
+						<label style="display: grid;" ngbButtonLabel [ngClass]="{'btn-secondary': !filters.flaggedSensitive || !timeline?.media, 'btn-danger': filters.flaggedSensitive}">
+							<input name="flaggedSensitive" type="checkbox" ngbButton [(ngModel)]="filters.flaggedSensitive" (click)="toggleShowFlagged()">
+							<span style="font-size: small; margin: -3px; margin-top: -7px">Flagged</span>
+							<span style="font-size: small; margin: -3px; margin-bottom: -7px">Sensitive</span>
 						</label>
 					</div>
 				</form>
@@ -30,42 +36,25 @@
 		</div>
 	</div>
 
-	<h4 *ngIf="timeline?.error">{{timeline?.error}}</h4>
+	<ng-container *ngFor="let error of errors">
+		<h4>{{error}}</h4>
+	</ng-container>
 
 	<div class="row justify-content-center">
-		<span *ngIf="model.loadingTimeline" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+		<span *ngIf="states.loading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
 		<ng-container *ngFor="let media of timeline?.media">
-			<div class="col-sm-0" *ngIf="media.type === 'photo' && model.showPhotos || media.type !== 'photo' && model.showVideos">
-				<div class="card-img-wrapper p-1">
-					<a *ngIf="media.type !== 'photo'" href="{{media.tweetUrl}}" target="_blank">
-						<img src='{{media.thumbnailUrl}}' alt='{{media.thumbnailUrl}}' class="card-img" />
-					</a>
-					<img *ngIf="media.type === 'photo'" src='{{media.thumbnailUrl}}'
-						alt='{{media.thumbnailUrl}}' class="card-img" (click)="openImageModal(media)"
-						(middleclick)="openLink(media.mediaUrl)" />
-					<span class="media-type">
-						<i class="fa"
-							[ngClass]="{'fa-image': media.type === 'photo', 'fa-film': media.type !== 'photo'}"></i>
-					</span>
-					<span class="media-visit">
-						<a href='{{media.tweetUrl}}' target="_blank"
-							[ngClass]="{'forced-ext-link': media.type !== 'photo'}">
-							<i class="fa fa-external-link-square"></i>
-						</a>
-					</span>
-				</div>
-			</div>
+			<app-gallery-tile [parent]='this' [media]='media' *ngIf="shouldDisplay(media)"></app-gallery-tile>
 		</ng-container>
 	</div>
 
-	<div class="row justify-content-center" *ngIf="timeline?.nextPageToken">
-		<button [disabled]="model.loadingNextPage" ngbButton class="btn btn-primary mt-5" (click)="getNextPage()">
-			<ng-container *ngIf="!model.loadingNextPage">Load more results</ng-container>
-			<span *ngIf="model.loadingNextPage" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+	<div class="row justify-content-center" *ngIf="futureTimeline?.media && states.multiplePages">
+		<button [disabled]="states.loadingNextPage" ngbButton class="btn btn-primary mt-5" (click)="getNextPage()">
+			<ng-container *ngIf="!states.loadingNextPage">Load more results</ng-container>
+			<span *ngIf="states.loadingNextPage" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
 		</button>
 	</div>
 
-	<div class="row justify-content-center" *ngIf="!timeline?.nextPageToken && model.multiplePages">
+	<div class="row justify-content-center" *ngIf="!futureTimeline?.media && states.multiplePages">
 		<h4 class="mt-5">You've gone as far back as I can show!</h4>
 	</div>
 </div>

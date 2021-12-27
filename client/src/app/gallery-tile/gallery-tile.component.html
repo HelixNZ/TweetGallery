@@ -1,0 +1,36 @@
+<div class="col-sm-0">
+	<div class="card-img-wrapper p-1">
+		<a *ngIf='media?.type !== "photo"' href="{{media?.tweetUrl}}" target="_blank">
+			<img src='{{media?.thumbnailUrl}}' 
+				alt='{{media?.thumbnailUrl}}' 
+				class="card-img" 
+				draggable="false" 
+				(load)="imageLoaded = true" />
+		</a>
+
+		<img *ngIf='media?.type === "photo"'
+			src='{{media?.thumbnailUrl}}'
+			alt='{{media?.thumbnailUrl}}'
+			class="card-img"
+			draggable="false"
+			(click)="parent.openImageModal(media)"
+			(middleclick)="openLink(media?.mediaUrl)" 
+			(load)="imageLoaded = true" />
+			
+		<span class="media-type">
+			<i class="fa" [ngClass]="{'fa-image': media?.type === 'photo', 'fa-film': media?.type !== 'photo'}"></i>
+		</span>
+
+		<span class="media-visit">
+			<a href='{{media?.tweetUrl}}' target="_blank" [ngClass]="{'forced-ext-link': media?.type !== 'photo'}">
+				<i class="fa fa-external-link-square"></i>
+			</a>
+		</span>
+
+		<div *ngIf="!imageLoaded" class="spinner">
+			<div class="spinner-border text-primary" role="status">
+				<span class="sr-only">Loading...</span>
+			</div>
+		</div>
+	</div>
+</div>

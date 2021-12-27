@@ -1,4 +1,5 @@
 using System.Net.Http.Headers;
+using System.Text.RegularExpressions;
 using API.DTOs;
 using API.Entities;
 using API.Helpers;
@@ -23,7 +24,8 @@ public class TwitterController : BaseApiController
 	private async Task<UserDto> GetUserByUsername(string username)
 	{
 		//Get the user ID from a username
-		HttpResponseMessage response = await _httpClient.GetAsync("users/by/username/" + username);
+		username = username.Replace("@", ""); //strip @ if there is one
+		HttpResponseMessage response = await _httpClient.GetAsync("users/by/username/" + username + "?user.fields=protected");
 
 		//Just treat all errors as user not found, there are many reasons why this request will fail
 		//	such as not found, username doesn't match regex etc.
@@ -33,81 +35,90 @@ public class TwitterController : BaseApiController
 
 		if(result.data == null) return null;
 
-		return new UserDto
+		var user = new UserDto
 		{
 			Id = result.data.id,
-			Username = result.data.username
+			Username = "@" + result.data.username,
+			Protected = result.data.Protected
 		};
+
+		return user;
 	}
 
-	[HttpGet("{username}")]
+	[HttpGet("timeline/{username}")]
 	public async Task<ActionResult<TimelineDto>> GetTimeline(string username, [FromQuery] string token)
 	{
+		//Test handle
+		if(!Regex.IsMatch(username, @"^@(\w{1,15})$")) return BadRequest("Invalid handle passed, does not match regex");
+
 		//Get the timeline for the user, 100 results
 		var user = await GetUserByUsername(username);
-		if (user == null) return new TimelineDto { Username = username, Error = "Twitter handle doesn't exist!" }; //Could be api limit or missing user
 
-		var requestUrl = "users/" + user.Id + "/tweets" +
-					"?max_results=100&expansions=attachments.media_keys" +
-					"&media.fields=media_key,preview_image_url,type,url" +
-					"&exclude=replies,retweets";
+		if (user == null) return NotFound("User not found");
+		if (user.Protected) return Unauthorized("User account is protected");
 
-		//Pagination token, add it if we got it in the query
-		if (token != null && token.Length > 0) requestUrl += "&until_id=" + token;
+		var requestUrl = "users/" + user.Id + "/tweets?exclude=replies,retweets";
+		var result = await QueryTimeline(requestUrl, user.Username, token, false);
 
+		return result;
+	}
+
+	[HttpGet("tags/{tag}")]
+	public async Task<ActionResult<TimelineDto>> SearchTags(string tag, [FromQuery] string token)
+	{
+		string pattern = @"^(( -| )?((@|#|$)|((from|to|is|has):))?(\w{1,15})){1,3}$";
+
+		if(!Regex.IsMatch(tag, pattern))
+		{
+			var tags = tag.Split(" ");
+			if(tags.Count() > 3) return BadRequest("Too many tags, maximum allowed is 3");
+
+			//Test each tag to see which tag is failing
+			for(int i = 0; i < tags.Count(); ++i)
+			{
+				if(!Regex.IsMatch(tags[i], pattern)) return BadRequest("Invalid tag \"" + tags[i] + "\"");
+			}
+
+			//Catch-all error
+			return BadRequest("Search query doesn't pass regex requirements");
+		}
+
+		//Gets by tags last 7 days
+		//We are allowed up to 5 tags, so using 2 pre-tags means 3 hashtags can be searched by the user
+		var requestUrl = "tweets/search/recent?query=" + Uri.EscapeDataString(tag) + " -is:retweet has:media";
+		var result = await QueryTimeline(requestUrl, tag, token, true);
+
+		return result;
+	}
+
+	private async Task<ActionResult<TimelineDto>> QueryTimeline(string requestUrl, string query, string untilId, bool enableScoring)
+	{
+		//Pagination token
+		requestUrl += "&max_results=100&expansions=attachments.media_keys,author_id&tweet.fields=possibly_sensitive,public_metrics" +
+					"&media.fields=media_key,preview_image_url,type,url";
+
+		if (untilId != null && untilId.Length > 0) requestUrl += "&until_id=" + untilId;
+		
 		HttpResponseMessage response = await _httpClient.GetAsync(requestUrl);
-		if (!response.IsSuccessStatusCode) return BadRequest("Server error when fetching timeline"); //Assume the worst (rate limit or api key issue)
+		if (!response.IsSuccessStatusCode) return BadRequest("Internal server error"); //Assume the worst (rate limit or api key issue)
 
 		var result = await response.Content.ReadFromJsonAsync<Timeline>();
 
 		//If no media returned, and pagination token wasn't included, then user had no media off the bat, so assume nothing of interest
-		if (token == null && result.includes == null) return new TimelineDto { Username = user.Username, Error = user.Username + " hasn't posted any images recently :(" };
-
-		//Peek into the future, check to see if the next tweet exists for "pagination"
-		//This is.... not ideal honestly, but with Twitter returning broken pagination tokens
-		//	this is a simple fix to not have a weird button that returns nothing
-		//
-		//Now there is an issue, wherefor max_results 5 is the minimum, also most logical number to put
-		//	here considering it's burning API limits that we might not even need to query for...
-		//However, some accounts will not return the desired amount, it could be anywhere between [5...100]
-		//	which is upsetting, but reinforces the need for V1 access even more
-		//
-		//
-		//Solution here is to not look into the future, and just have a button on the page even if we have 1 image returned
-		//This looks like crap because why have a button there? But there is no way to successfully pre-check if there are
-		//	any more results than there already is to prevent showing this button other than what we do here...
-		//
-		//Thankfully, max_results of 100 does not burn 100 tweets in my API limits if less results are returned.
-		//So not /entirely/ bad here...
-		requestUrl = "users/" + user.Id + "/tweets?max_results=100&exclude=replies,retweets&until_id=" + result.meta.oldest_id;
-		response = await _httpClient.GetAsync(requestUrl);
-
-		//The request should never fail if we've gotten this far, and twitter should response with meta.result_count = 0 at worst
-		if (!response.IsSuccessStatusCode) return BadRequest("Server error when fetching timeline");
-		var future = await response.Content.ReadFromJsonAsync<Timeline>();
+		if (untilId == null && result.includes == null) return NoContent();
 
 		//Create timeline
 		var timeline = new TimelineDto
 		{
-			Username = user.Username,
-			Media = new List<MediaDto>(),
-
-			//Alright, sooooo for some reason Twitter's V2 API doesn't provide pagination tokens
-			//		for some accounts, or just randomly decides to stop including them in results
-			//
-			//The solution for this is just to search using the oldest ID returned
-			//
-			//I tested this in postman and indeed it does fix the weird soft limits imposed by the API
-			//
-			//The only issue is that it's harder to check how many tweets we have left to query
-			//		so for now we'll naturally stop after no results are returned
-			NextPageToken = future.meta.result_count > 0 ? result.meta.oldest_id : null //Use oldest ID instead of pagination token
+			Query = Uri.UnescapeDataString(query),
+			NextPageToken = result.meta.oldest_id
 		};
 
 		//If no media but we are paginated, return the media-less timeline which will remove the "Load more results" button
-		if(result.includes == null) return Ok(timeline);
+		if(result.includes == null || result.includes.media == null) return NoContent();
 
 		//Map the media and store it into the timelineDto
+		timeline.Media = new List<MediaDto>(); //Only create the list if there is media
 		result.includes.media.ForEach(media =>
 		{
 			var newMedia = new MediaDto
@@ -119,11 +130,21 @@ public class TwitterController : BaseApiController
 
 			//Find matching tweet
 			var matchedTweet = result.data.First(tweet => tweet.attachments != null && tweet.attachments.media_keys.Contains(media.media_key));
-			newMedia.TweetUrl = "https://twitter.com/" + user.Username + "/status/" + matchedTweet.id;
+			var matchedUser = result.includes.users.First(user => user.id == matchedTweet.author_id);
+			newMedia.TweetUrl = "https://twitter.com/" + matchedUser.username + "/status/" + matchedTweet.id;
+			newMedia.PossiblySensitive = matchedTweet.possibly_sensitive; //nsfw
 
-			//Append
-			timeline.Media.Add(newMedia);
+			//Filter out low-effort or unrelated posts by checking public metrics
+			var tweetValue = matchedTweet.public_metrics.like_count + matchedTweet.public_metrics.reply_count + matchedTweet.public_metrics.retweet_count;
+			if(tweetValue > 15 || !enableScoring) timeline.Media.Add(newMedia);
 		});
+
+		//Lack of images that match the score
+		if(timeline.Media.Count() == 0 || timeline.Media == null)
+		{
+			timeline.Media = null; //Remove for ease of processing on the frontend
+			return NoContent();
+		}
 
 		return Ok(timeline);
 	}

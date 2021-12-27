@@ -1,11 +1,19 @@
 using API.Helpers;
 using API.Middleware;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
+//TODO: Fix issue where heroku won't route to HTTPS when not at route, the following line causes infinite redirect
+//builder.Services.AddHttpsRedirection(options => { options.HttpsPort = 443; });
 builder.Services.Configure<TwitterSettings>(builder.Configuration.GetSection("TwitterSettings"));
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+	options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+	options.KnownNetworks.Clear();
+	options.KnownProxies.Clear();
+});
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
