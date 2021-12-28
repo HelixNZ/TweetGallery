@@ -1,5 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
-import { Filters } from '../_models/filters';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { Media } from '../_models/media';
 
 @Component({
@@ -7,18 +6,12 @@ import { Media } from '../_models/media';
   templateUrl: './gallery-tile.component.html',
   styleUrls: ['./gallery-tile.component.css']
 })
-export class GalleryTileComponent implements OnInit {
-  @Input() parent: any;
+export class GalleryTileComponent {
   @Input() media?: Media;
+  @Output() openOverlay = new EventEmitter();
   imageLoaded: boolean = false; //Flag for if the image has loaded
-
-  constructor() { }
-
-  ngOnInit(): void {
-  }
 
   openLink(url?: string) {
     if (url) window.open(url, "_blank");
   }
-
 }

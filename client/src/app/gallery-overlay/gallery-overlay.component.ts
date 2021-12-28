@@ -1,31 +1,36 @@
 import { Component, HostListener, Input } from '@angular/core';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { Filters } from 'src/app/_models/filters';
-import { Media } from 'src/app/_models/media';
-import { Timeline } from 'src/app/_models/timeline';
+import { Filters } from '../_models/filters';
+import { Media } from '../_models/media';
+import { Timeline } from '../_models/timeline';
 
 @Component({
-  selector: 'app-image-modal',
-  templateUrl: './image-modal.component.html',
-  styleUrls: ['./image-modal.component.css']
+  selector: 'app-gallery-overlay',
+  templateUrl: './gallery-overlay.component.html',
+  styleUrls: ['./gallery-overlay.component.css']
 })
-export class ImageModalComponent {
+export class GalleryOverlayComponent {
   @Input() timeline?: Timeline;
   @Input() media?: Media;
-  @Input() filters: Filters = {video: true, photo: true, flaggedSensitive: false};
+  @Input() filters: Filters = { video: true, photo: true, flaggedSensitive: false };
+  visible: boolean = false;
   imageLoaded: boolean = false;
   swipeCoord?: [number, number];
   swipeTime?: number;
 
-  constructor(public modalService: NgbModal) { }
-
-  setMedia(media: Media) {
+  show(media: Media) {
+    document.body.style.overflow = "hidden";
     this.imageLoaded = false;
     this.media = media;
+    this.visible = true;
   }
 
-  openImageInNewWindow(){
-    if(this.media) window.open(this.media.type === "photo" ? this.media.mediaUrl : this.media.tweetUrl, "_blank");
+  hide() {
+    this.visible = false;
+    document.body.style.overflow = "";
+  }
+
+  openImageInNewWindow() {
+    if (this.media) window.open(this.media.type === "photo" ? this.media.mediaUrl : this.media.tweetUrl, "_blank");
   }
 
   navigateMedia(dir: number) {
@@ -56,12 +61,14 @@ export class ImageModalComponent {
     }
   }
 
+  //Keypress
   @HostListener('window:keyup', ['$event'])
   public keyup(event: KeyboardEvent): any {
     var dir = (event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0);
     this.navigateMedia(dir);
   }
 
+  //Swipe support
   @HostListener('window:touchstart', ['$event'])
   public swipe_start(event: TouchEvent): any {
     const coord: [number, number] = [event.changedTouches[0].clientX, event.changedTouches[0].clientY];
