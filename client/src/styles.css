@@ -1,13 +1,20 @@
 @font-face {
 	font-family: "Outfit";
 	src: url("assets/Outfit/Outfit-VariableFont_wght.ttf");
-  }
+}
+
+html {
+	min-width: -webkit-fill-available;
+	min-height: -webkit-fill-available;
+}
 
 body {
 	background-color: rgb(21 38 54);
 	color: white;
 	font-family: "Outfit";
 	user-select: none;
+	min-width: -webkit-fill-available;
+	min-height: -webkit-fill-available;
 }
 
 .footer, .footer a {
