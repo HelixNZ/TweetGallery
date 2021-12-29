@@ -18,17 +18,17 @@ export class GalleryOverlayComponent {
   swipeTime?: number;
 
   show(media: Media) {
-    document.body.style.overflow = "hidden";
+    document.body.style.overflowY = "hidden";
     document.body.style.touchAction = "pan-x";
     this.imageLoaded = false;
     this.media = media;
-    this.visible = true;
+    this.visible = true; //display after setup
   }
 
   hide() {
-    this.visible = false;
-    document.body.style.overflow = "";
-    document.body.style.touchAction = "";
+    this.visible = false; //hide before the scrollbar comes back
+    document.body.style.overflowY = "";
+    document.body.style.touchAction = "pan-y"; //consider not doing this
   }
 
   openImageInNewWindow() {
@@ -89,8 +89,6 @@ export class GalleryOverlayComponent {
   @HostListener('window:touchend', ['$event'])
   public swipe_end(event: TouchEvent): any {
     if(this.visible) {
-      //event.preventDefault(); //block all other swipes
-
       if (this.swipeTime && this.swipeCoord) {
         const coord: [number, number] = [event.changedTouches[0].clientX, event.changedTouches[0].clientY];
         const time = new Date().getTime();
