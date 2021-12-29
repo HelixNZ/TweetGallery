@@ -1,10 +1,11 @@
 import { Component, HostListener, OnInit, ViewChild } from '@angular/core';
-import { TwitterService } from '../_services/twitter.service';
 import { Timeline } from '../_models/timeline';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Media } from '../_models/media';
 import { Filters } from '../_models/filters';
 import { GalleryOverlayComponent } from '../gallery-overlay/gallery-overlay.component';
+import { ApiService } from '../_services/api.service';
+import { BusyService } from '../_services/busy.service';
 
 @Component({
   selector: 'app-home',
@@ -15,22 +16,20 @@ export class HomeComponent implements OnInit {
   @ViewChild('galleryOverlay') galleryOverlay?: GalleryOverlayComponent;
   timeline?: Timeline;
   futureTimeline?: Timeline;
-  states = { multiplePages: false, loading: false, loadingNextPage: false };
+  states = { multiplePages: false };
   filters: Filters = { video: true, photo: true, flaggedSensitive: false };
   query = "";
   errors: string[] = [];
 
-
   constructor(
-    private twitterService: TwitterService,
+    private apiService: ApiService,
+    public busyService: BusyService,
     private route: ActivatedRoute,
     private router: Router) {
     this.router.routeReuseStrategy.shouldReuseRoute = () => false;
   }
 
   ngOnInit(): void {
-    this.filters.photo = true;
-    this.filters.video = true;
     this.filters.flaggedSensitive = localStorage.getItem("showSensitiveTweets") == "true" ? true : false;
 
     this.route.data.subscribe(routeData => {
@@ -41,16 +40,15 @@ export class HomeComponent implements OnInit {
 
       if (query) {
         this.query = query; //temporary while we load the timeline
-        this.states.loading = true;
 
-        this.twitterService.getTimeline(query).subscribe(timeline => {
+        this.apiService.getTimeline(query).subscribe(timeline => {
           if (timeline) {
             this.timeline = timeline;
             this.query = this.timeline.query;
 
             //Peek & store future?
             if (timeline.nextPageToken && query) {
-              this.twitterService.getTimeline(query, timeline.nextPageToken).subscribe(futureTimeline => {
+              this.apiService.getTimeline(query, timeline.nextPageToken).subscribe(futureTimeline => {
                 this.futureTimeline = futureTimeline;
                 if (futureTimeline?.media) this.states.multiplePages = true; //Prevents the EOF message being displayed for single page results
               });
@@ -60,8 +58,6 @@ export class HomeComponent implements OnInit {
             if (tags) this.errors.push("No media found for \"" + this.query + "\" in the past 7 days");
             if (handle) this.errors.push(this.query + " hasn't posted any media recently");
           }
-
-          this.states.loading = false;
         }, error => {
           if (error.status === 500) {
             this.errors.push(error.error.message);
@@ -69,8 +65,6 @@ export class HomeComponent implements OnInit {
           } else {
             this.errors.push(error.error);
           }
-
-          this.states.loading = false;
         });
       }
     });
@@ -103,7 +97,6 @@ export class HomeComponent implements OnInit {
 
   getNextPage() {
     if (this.timeline && this.futureTimeline?.media) {
-      this.states.loadingNextPage = true;
 
       //Use preloaded timeline
       if (this.timeline.media && this.futureTimeline.media) this.timeline.media = [...this.timeline.media, ...this.futureTimeline.media];
@@ -111,24 +104,17 @@ export class HomeComponent implements OnInit {
 
       //Grab next page if there is one
       if (this.futureTimeline?.nextPageToken) {
-        this.twitterService.getTimeline(this.timeline.query, this.futureTimeline.nextPageToken).subscribe(timeline => {
+        this.apiService.getTimeline(this.timeline.query, this.futureTimeline.nextPageToken).subscribe(timeline => {
           this.futureTimeline = timeline;
-          this.states.loadingNextPage = false;
         });
       }
       else {
         this.futureTimeline = undefined;
-        this.states.loadingNextPage = false;
       }
     }
   }
 
-  openImageModal(media: Media) {
-    this.galleryOverlay?.show(media);
-  }
-
   searchUser() {
-    this.states.loading = true;
     const handleRegex = new RegExp('^@(\\w{1,15})$'); //If matched to this, search by handle, otherwise tag search
     var route = handleRegex.test(this.query) ? "/" + this.query : "tags/" + encodeURIComponent(this.query);
     this.router.navigateByUrl(route);
@@ -137,7 +123,7 @@ export class HomeComponent implements OnInit {
   @HostListener('window:scroll', ['$event'])
   public scroll(event: any): any {
     if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight) {
-      if(!this.states.loadingNextPage) this.getNextPage(); //Consider putting a timer on this, however loadingNextPage should be enough
+      if(!this.busyService.isBusy()) this.getNextPage(); //Consider putting a timer on this, however loadingNextPage should be enough
     }
   }
 }

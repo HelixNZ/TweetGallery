@@ -1,15 +1,17 @@
 <div class="container">
+
+	<!-- Navbar -->
 	<div class="row">
 		<div class="col nav-col">
 			<div class="card p-2 mt-5 mb-5">
 				<form role="form" class="form-inline" (ngSubmit)="searchUser()">
 					<div class="btn-group">
 						<input type="text" [(ngModel)]="query" class="form-control" name="query" placeholder="@, # or keyword" autocomplete="off" />
-						<button [disabled]="!query || states.loading || (query | lowercase) === (timeline?.query | lowercase)"
+						<button [disabled]="!query || busyService.isBusy() || (query | lowercase) === (timeline?.query | lowercase)"
 								type="submit" class="btn btn-primary" 
 								[ngClass]="{'btn-secondary': !query}">
-							<i *ngIf="!states.loading" class="fa fa-search"></i>
-							<span *ngIf="states.loading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+							<i *ngIf="!busyService.isBusy()" class="fa fa-search"></i>
+							<span *ngIf="busyService.isBusy()" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
 						</button>
 					</div>
 					<div class="btn-group btn-group-toggle">
@@ -36,27 +38,37 @@
 		</div>
 	</div>
 
+	<!-- Error message -->
 	<ng-container *ngFor="let error of errors">
 		<h4>{{error}}</h4>
 	</ng-container>
 
+	<!-- Gallery -->
 	<div class="row justify-content-center">
-		<span *ngIf="states.loading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
 		<ng-container *ngFor="let media of timeline?.media">
-			<app-gallery-tile [media]='media' (openOverlay)="openImageModal(media)" *ngIf="shouldDisplay(media)"></app-gallery-tile>
+			<app-gallery-tile [media]='media' (openOverlay)="galleryOverlay?.show(media)" *ngIf="shouldDisplay(media)"></app-gallery-tile>
 		</ng-container>
+
 	</div>
 
+	<!-- End of results -->
+	<div class="row justify-content-center m-5" *ngIf="!states.multiplePages && busyService.isBusy()">
+		<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+	</div>
+
+	<ng-container *ngIf="states.multiplePages">
+		<div class="row justify-content-center" *ngIf="futureTimeline?.media">
+			<button [disabled]="busyService.isBusy()" ngbButton class="btn btn-primary mt-5" (click)="getNextPage()">
+				<ng-container *ngIf="!busyService.isBusy()">Load more results</ng-container>
+				<span *ngIf="busyService.isBusy()" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+			</button>
+		</div>
+	
+		<div class="row justify-content-center" *ngIf="!futureTimeline?.media">
+			<h4 class="mt-5">You've gone as far back as I can show!</h4>
+		</div>
+	</ng-container>
+
+	<!-- Overlay popup -->
 	<app-gallery-overlay #galleryOverlay [timeline]="timeline" [filters]="filters"></app-gallery-overlay>
-
-	<div class="row justify-content-center" *ngIf="futureTimeline?.media && states.multiplePages">
-		<button [disabled]="states.loadingNextPage" ngbButton class="btn btn-primary mt-5" (click)="getNextPage()">
-			<ng-container *ngIf="!states.loadingNextPage">Load more results</ng-container>
-			<span *ngIf="states.loadingNextPage" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-		</button>
-	</div>
-
-	<div class="row justify-content-center" *ngIf="!futureTimeline?.media && states.multiplePages">
-		<h4 class="mt-5">You've gone as far back as I can show!</h4>
-	</div>
 </div>
