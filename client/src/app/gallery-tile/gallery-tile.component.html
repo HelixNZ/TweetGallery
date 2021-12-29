@@ -22,7 +22,9 @@
 			
 		<!-- Media type icon -->
 		<span class="media-type">
-			<i class="fa" [ngClass]="{'fa-image': media?.type === 'photo', 'fa-film': media?.type !== 'photo'}"></i>
+			<i class="fa"
+			[ngClass]="{'fa-image': media?.type === 'photo', 'fa-film': media?.type !== 'photo'}"
+			(click)='media?.type === "photo" ? openOverlay.emit() : openLink(media?.tweetUrl)'></i>
 		</span>
 
 		<!-- External link -->
@@ -30,7 +32,8 @@
 		<!-- Forced visible & opaque if on a touch device -->
 		<span class="media-visit">
 			<a href='{{media?.tweetUrl}}' target="_blank" [ngClass]="{'forced-ext-link': media?.type !== 'photo'}">
-				<i class="fa fa-external-link-square"></i>
+				<!-- <i class="fa fa-external-link-square"></i> -->
+				<i class="fa fa-twitter"></i>
 			</a>
 		</span>
 

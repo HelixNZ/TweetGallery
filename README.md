@@ -1,4 +1,4 @@
-# Twitter Gallery
+# Tweet Gallery
 Personal Angular/DotNet project that allows you to view twitter as a gallery rather than tweets.
 Type in your favorite artist/content creator's handle, a topic or even a hashtag to see gallerized results.
 Topics and hashtag searches will return up to the last 7 days worth of media posted.

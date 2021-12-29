@@ -2,6 +2,7 @@ namespace API.DTOs;
 
 public class MediaDto
 {
+    public string Handle { get; set; } //handle of tweet author
     public string TweetUrl { get; set; } //link to tweet url
     public string MediaUrl { get; set; } //full-size, photo only. If non-photo, mediaurl & thumbnailurl are equal
     public string ThumbnailUrl { get; set; } //150x150, equals mediaurl thumbnail or media preview (video)

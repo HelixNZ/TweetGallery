@@ -5,8 +5,8 @@ import { Observable, of } from 'rxjs';
 @Injectable({
   providedIn: 'root'
 })
-export class TagResolver implements Resolve<string | null> {
-  resolve(route: ActivatedRouteSnapshot): Observable<string | null> {
-    return of(route.paramMap.get('tags'));
+export class TagResolver implements Resolve<string | null | undefined> {
+  resolve(route: ActivatedRouteSnapshot): Observable<string | null | undefined> {
+    return of(route.paramMap.get('tags')?.trim());
   }
 }
