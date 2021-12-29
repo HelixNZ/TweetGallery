@@ -2,10 +2,10 @@ import { Component, HostListener, OnInit, ViewChild } from '@angular/core';
 import { Timeline } from '../_models/timeline';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Media } from '../_models/media';
-import { Filters } from '../_models/filters';
 import { GalleryOverlayComponent } from '../gallery-overlay/gallery-overlay.component';
 import { ApiService } from '../_services/api.service';
 import { BusyService } from '../_services/busy.service';
+import { SettingsService } from '../_services/settings.service';
 
 @Component({
   selector: 'app-home',
@@ -14,24 +14,24 @@ import { BusyService } from '../_services/busy.service';
 })
 export class HomeComponent implements OnInit {
   @ViewChild('galleryOverlay') galleryOverlay?: GalleryOverlayComponent;
-  timeline?: Timeline;
-  futureTimeline?: Timeline;
-  states = { multiplePages: false };
-  filters: Filters = { video: true, photo: true, flaggedSensitive: false };
-  query = "";
-  errors: string[] = [];
+
+  timeline?: Timeline; //Main timeline being displayed
+  futureTimeline?: Timeline; //Peek ahead for UX
+  multiplePages: boolean = false; //More than one page has been successfully loaded
+  query = ""; //Query used and confirmed by the API
+  errors: string[] = []; //API errors
 
   constructor(
-    private apiService: ApiService,
-    public busyService: BusyService,
-    private route: ActivatedRoute,
-    private router: Router) {
+      private apiService: ApiService,
+      public busyService: BusyService,
+      public settingsService: SettingsService,
+      private route: ActivatedRoute,
+      private router: Router) {
+    //With or without this is fine. With feels nicer for UX, but without is also nice
     this.router.routeReuseStrategy.shouldReuseRoute = () => false;
   }
 
   ngOnInit(): void {
-    this.filters.flaggedSensitive = localStorage.getItem("showSensitiveTweets") == "true" ? true : false;
-
     this.route.data.subscribe(routeData => {
       var handle = (routeData.handle as string);
       var tags = (routeData.tags as string);
@@ -50,7 +50,7 @@ export class HomeComponent implements OnInit {
             if (timeline.nextPageToken && query) {
               this.apiService.getTimeline(query, timeline.nextPageToken).subscribe(futureTimeline => {
                 this.futureTimeline = futureTimeline;
-                if (futureTimeline?.media) this.states.multiplePages = true; //Prevents the EOF message being displayed for single page results
+                if (futureTimeline?.media) this.multiplePages = true; //Prevents the EOF message being displayed for single page results
               });
             }
           } else {
@@ -59,7 +59,7 @@ export class HomeComponent implements OnInit {
             if (handle) this.errors.push(this.query + " hasn't posted any media recently");
           }
         }, error => {
-          if (error.status === 500) {
+          if (error.status === 500) { //500 will have an object
             this.errors.push(error.error.message);
             this.errors.push(error.error.details);
           } else {
@@ -70,27 +70,12 @@ export class HomeComponent implements OnInit {
     });
   }
 
-  toggleShowFlagged() {
-    this.filters.flaggedSensitive = !this.filters.flaggedSensitive;
-    localStorage.setItem("showSensitiveTweets", this.filters.flaggedSensitive ? "true" : "false");
-  }
-
-  togglePhotoFilter() {
-    this.filters.photo = !this.filters.photo;
-    if (!this.filters.photo) this.filters.video = true;
-  }
-
-  toggleVideoFilter() {
-    this.filters.video = !this.filters.video;
-    if (!this.filters.video) this.filters.photo = true;
-  }
-
   shouldDisplay(media: Media): boolean {
-    var filtered = (media.type === 'photo' && this.filters.photo) ||
-      (media.type !== 'photo' && this.filters.video);
+    var filtered = (media.type === 'photo' && this.settingsService.filters.photo) ||
+      (media.type !== 'photo' && this.settingsService.filters.video);
 
     //Flagged Sensitive check
-    filtered = filtered && ((media.possiblySensitive && this.filters.flaggedSensitive) || !media.possiblySensitive);
+    filtered = filtered && ((media.possiblySensitive && this.settingsService.filters.flaggedSensitive) || !media.possiblySensitive);
 
     return filtered;
   }

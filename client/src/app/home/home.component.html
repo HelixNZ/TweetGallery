@@ -1,7 +1,7 @@
 <div class="container">
 
 	<!-- Navbar -->
-	<app-navbar [timeline]="timeline" [filters]="filters" [query]="query"></app-navbar>
+	<app-navbar [timeline]="timeline" [query]="query"></app-navbar>
 
 	<!-- Error message -->
 	<div class="row justify-content-center" *ngIf="errors.length > 0">
@@ -9,32 +9,32 @@
 	</div>
 
 	<!-- Gallery -->
-	<div class="row justify-content-center" *ngIf="timeline?.media">
+	<div class="row justify-content-center mb-5" *ngIf="timeline?.media">
 		<!-- Image tiles -->
 		<ng-container *ngFor="let media of timeline?.media">
 			<app-gallery-tile [media]='media' (openOverlay)="galleryOverlay?.show(media)" *ngIf="shouldDisplay(media)"></app-gallery-tile>
 		</ng-container>
 
 		<!-- Image overlay -->
-		<app-gallery-overlay #galleryOverlay [timeline]="timeline" [filters]="filters"></app-gallery-overlay>
+		<app-gallery-overlay #galleryOverlay [timeline]="timeline"></app-gallery-overlay>
 	</div>
 
 	<!-- End of results -->
-	<!-- Loading spinner -->
-	<div class="row justify-content-center" *ngIf="!states.multiplePages && busyService.isBusy()">
+	<!-- Loading spinner, located here so it appears under the first set of results -->
+	<div class="row justify-content-center" *ngIf="!multiplePages && busyService.isBusy()">
 		<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
 	</div>
 
 	<!-- End of results message or button -->
-	<ng-container *ngIf="states.multiplePages">
-		<div class="row justify-content-center m-5" *ngIf="futureTimeline?.media">
+	<ng-container *ngIf="multiplePages">
+		<div class="row justify-content-center" *ngIf="futureTimeline?.media">
 			<button [disabled]="busyService.isBusy()" ngbButton class="btn btn-primary" (click)="getNextPage()">
 				<ng-container *ngIf="!busyService.isBusy()">Load more results</ng-container>
 				<span *ngIf="busyService.isBusy()" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
 			</button>
 		</div>
 	
-		<div class="row justify-content-center m-5" *ngIf="!futureTimeline?.media">
+		<div class="row justify-content-center" *ngIf="!futureTimeline?.media">
 			<h4>You've gone as far back as I can show!</h4>
 		</div>
 	</ng-container>
@@ -43,4 +43,5 @@
 	<div class="footer row justify-content-center m-5">
 		<span class="mr-1">Made with ♥ by</span><a href="https://github.com/HelixNZ/" target="_blank">Helix</a>
 	</div>
+	
 </div>

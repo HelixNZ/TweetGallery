@@ -1,7 +1,7 @@
 import { Component, HostListener, Input } from '@angular/core';
-import { Filters } from '../_models/filters';
 import { Media } from '../_models/media';
 import { Timeline } from '../_models/timeline';
+import { SettingsService } from '../_services/settings.service';
 
 @Component({
   selector: 'app-gallery-overlay',
@@ -10,12 +10,13 @@ import { Timeline } from '../_models/timeline';
 })
 export class GalleryOverlayComponent {
   @Input() timeline?: Timeline;
-  @Input() filters: Filters = { video: true, photo: true, flaggedSensitive: false };
   media?: Media;
   visible: boolean = false;
   imageLoaded: boolean = false;
   swipeCoord?: [number, number];
   swipeTime?: number;
+
+  constructor(public settingsService: SettingsService) { }
 
   show(media: Media) {
     document.body.style.overflowY = "hidden";
@@ -45,14 +46,14 @@ export class GalleryOverlayComponent {
       //  and if we are showing either media type.
       //This is an edge case but if the user somehow opens the modal
       //  with both filters off, they can lock up their browser....
-      if (dir !== 0 && (this.filters.photo || this.filters.video)) {
+      if (dir !== 0 && (this.settingsService.filters.photo || this.settingsService.filters.video)) {
         while (true) {
           index += dir;
           if (index < 0) index = media.length - 1;
           else if (media && index >= media.length) index = 0;
 
-          if (media[index].type === 'photo' && this.filters.photo) break;
-          if (media[index].type !== 'photo' && this.filters.video) break;
+          if (media[index].type === 'photo' && this.settingsService.filters.photo) break;
+          if (media[index].type !== 'photo' && this.settingsService.filters.video) break;
         }
 
         if (this.media !== media[index]) {
