@@ -12,6 +12,7 @@ import { MiddleClickDirective } from './_directives/middle-click.directive';
 import { GalleryTileComponent } from './gallery-tile/gallery-tile.component';
 import { GalleryOverlayComponent } from './gallery-overlay/gallery-overlay.component';
 import { LoadingInterceptor } from './_interceptors/loading.interceptor';
+import { NavbarComponent } from './navbar/navbar.component';
 
 @NgModule({
   declarations: [
@@ -20,6 +21,7 @@ import { LoadingInterceptor } from './_interceptors/loading.interceptor';
     MiddleClickDirective,
     GalleryTileComponent,
     GalleryOverlayComponent,
+    NavbarComponent,
   ],
   imports: [
     BrowserModule,

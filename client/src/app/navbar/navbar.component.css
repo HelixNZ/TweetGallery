@@ -1,0 +1,22 @@
+.card {
+	background-color: rgb(75 92 108);
+}
+
+.nav-col {
+	display: flex;
+	justify-content: center;
+}
+
+.form-inline {
+	justify-content: center;
+	gap: 5px;
+	row-gap: 9px;
+}
+
+.form-inline label {
+	display: unset;
+}
+
+.btn-group {
+	flex-grow: 1;
+}

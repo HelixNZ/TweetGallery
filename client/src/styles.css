@@ -11,11 +11,3 @@ body {
 	overflow-x: hidden;
 	touch-action: pan-y;
 }
-
-.footer, .footer a {
-	color: rgb(107, 124, 170);
-}
-
-.card {
-	background-color: rgb(75 92 108);
-}
