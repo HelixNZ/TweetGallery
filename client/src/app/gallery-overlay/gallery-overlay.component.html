@@ -4,9 +4,9 @@
 			src='{{media?.mediaUrl}}' alt="{{media?.mediaUrl}}">
 
 		<a class="info-bar" href='{{media?.tweetUrl}}' target="_blank">
-			<span class="info-at">@</span>
+			<i class="info-at fa fa-at"></i>
 			<span class="info-author">{{media?.handle}}</span>
-			<span class="info-collapse-text">View on <i class="fa fa-twitter"></i></span>
+			<i class="info-twitter fa fa-twitter"></i>
 		</a>
 
 		<div *ngIf="!imageLoaded" class="spinner">

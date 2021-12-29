@@ -68,40 +68,28 @@
 .info-bar {
 	width: 100%;
 	display: flex;
-	overflow: hidden;
 	text-decoration: none;
-    font-variant: all-small-caps;
-	font-size: large;
-	color: white;
-	padding-left: 4px;
-	padding-right: 4px;
-	max-height: 24px;
+	color: rgb(138, 166, 191);
+	padding: 5px;
+	max-height: 20px;
 	position: relative;
-	bottom: 4px;
+	bottom: 10px;
 	align-items: baseline;
 }
 
 .info-at {
-	align-self: center;
-	font-size: x-large;
+	font-size: 12px;
+	padding-right: 1px;
 }
 
 .info-author {
 	flex-grow: 1;
-	min-width: fit-content;
-	color: white;
+    font-variant: all-small-caps;
+	font-size: large;
+	padding-right: 2px;
 }
 
-.info-collapse-text {
-	position: relative;
-	top: 3px;
-	overflow: hidden;
-	text-align-last: right;
-	align-self: end;
-	min-width: 0;
-}
-
-.info-collapse-text i {
+.info-twitter {
 	padding-left: 2px;
 	font-size: small;
 }
