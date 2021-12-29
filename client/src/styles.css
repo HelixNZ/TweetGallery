@@ -1,12 +1,15 @@
 @font-face {
 	font-family: "Outfit";
 	src: url("assets/Outfit/Outfit-VariableFont_wght.ttf");
-  }
+}
 
 body {
 	background-color: rgb(21 38 54);
 	color: white;
 	font-family: "Outfit";
+	user-select: none;
+	overflow-x: hidden;
+	touch-action: pan-y;
 }
 
 .footer, .footer a {
@@ -15,28 +18,4 @@ body {
 
 .card {
 	background-color: rgb(75 92 108);
-}
-
-.modal {
-	touch-action: pan-x !important;
-	text-align: -webkit-center;
-}
-
-.modal-dialog {
-	width: fit-content;
-	height: fit-content;
-	place-content: center;
-	max-width: 100vw;
-	max-height: 1vh;
-}
-
-.modal-content, .modal-img {
-	background-color: #0b131b !important;
-	width: 100%;
-	max-height: 95vh;
-}
-
-img {
-	min-width: 50px;
-	min-height: 50px;
 }

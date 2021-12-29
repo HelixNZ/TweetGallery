@@ -8,17 +8,17 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { HomeComponent } from './home/home.component';
-import { ImageModalComponent } from './modals/image-modal/image-modal.component';
 import { MiddleClickDirective } from './_directives/middle-click.directive';
 import { GalleryTileComponent } from './gallery-tile/gallery-tile.component';
+import { GalleryOverlayComponent } from './gallery-overlay/gallery-overlay.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     HomeComponent,
-    ImageModalComponent,
     MiddleClickDirective,
     GalleryTileComponent,
+    GalleryOverlayComponent,
   ],
   imports: [
     BrowserModule,

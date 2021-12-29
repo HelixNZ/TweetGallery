@@ -13,7 +13,7 @@
 			alt='{{media?.thumbnailUrl}}'
 			class="card-img"
 			draggable="false"
-			(click)="parent.openImageModal(media)"
+			(click)="openOverlay.emit()"
 			(middleclick)="openLink(media?.mediaUrl)" 
 			(load)="imageLoaded = true" />
 			

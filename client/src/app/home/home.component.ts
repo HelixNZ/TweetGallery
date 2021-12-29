@@ -1,11 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit, ViewChild } from '@angular/core';
 import { TwitterService } from '../_services/twitter.service';
 import { Timeline } from '../_models/timeline';
 import { ActivatedRoute, Router } from '@angular/router';
-import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
-import { ImageModalComponent } from '../modals/image-modal/image-modal.component';
 import { Media } from '../_models/media';
 import { Filters } from '../_models/filters';
+import { GalleryOverlayComponent } from '../gallery-overlay/gallery-overlay.component';
 
 @Component({
   selector: 'app-home',
@@ -13,17 +12,17 @@ import { Filters } from '../_models/filters';
   styleUrls: ['./home.component.css']
 })
 export class HomeComponent implements OnInit {
+  @ViewChild('galleryOverlay') galleryOverlay?: GalleryOverlayComponent;
   timeline?: Timeline;
   futureTimeline?: Timeline;
-  modalRef?: NgbModalRef;
   states = { multiplePages: false, loading: false, loadingNextPage: false };
   filters: Filters = { video: true, photo: true, flaggedSensitive: false };
   query = "";
   errors: string[] = [];
 
+
   constructor(
     private twitterService: TwitterService,
-    private modalService: NgbModal,
     private route: ActivatedRoute,
     private router: Router) {
     this.router.routeReuseStrategy.shouldReuseRoute = () => false;
@@ -125,11 +124,7 @@ export class HomeComponent implements OnInit {
   }
 
   openImageModal(media: Media) {
-    document.body.style.overflowY = "hidden"; //disable scroll
-    this.modalRef = this.modalService.open(ImageModalComponent, { animation: false, centered: true, beforeDismiss: () => { document.body.style.overflowY = ""; return (true); } });
-    this.modalRef.componentInstance.timeline = this.timeline;
-    this.modalRef.componentInstance.filters = this.filters;
-    this.modalRef.componentInstance.media = media;
+    this.galleryOverlay?.show(media);
   }
 
   searchUser() {
@@ -137,5 +132,12 @@ export class HomeComponent implements OnInit {
     const handleRegex = new RegExp('^@(\\w{1,15})$'); //If matched to this, search by handle, otherwise tag search
     var route = handleRegex.test(this.query) ? "/" + this.query : "tags/" + encodeURIComponent(this.query);
     this.router.navigateByUrl(route);
+  }
+
+  @HostListener('window:scroll', ['$event'])
+  public scroll(event: any): any {
+    if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight) {
+      if(!this.states.loadingNextPage) this.getNextPage(); //Consider putting a timer on this, however loadingNextPage should be enough
+    }
   }
 }

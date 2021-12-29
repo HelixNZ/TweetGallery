@@ -33,7 +33,7 @@ public class TwitterController : BaseApiController
 
 		var result = await response.Content.ReadFromJsonAsync<UserRequest>();
 
-		if(result.data == null) return null;
+		if (result.data == null) return null;
 
 		var user = new UserDto
 		{
@@ -49,7 +49,8 @@ public class TwitterController : BaseApiController
 	public async Task<ActionResult<TimelineDto>> GetTimeline(string username, [FromQuery] string token)
 	{
 		//Test handle
-		if(!Regex.IsMatch(username, @"^@(\w{1,15})$")) return BadRequest("Invalid handle passed, does not match regex");
+		username = Uri.UnescapeDataString(username); //If it's been encoded
+		if (!Regex.IsMatch(username, @"^@(\w{1,15})$")) return BadRequest("Invalid handle passed, does not match regex");
 
 		//Get the timeline for the user, 100 results
 		var user = await GetUserByUsername(username);
@@ -66,21 +67,19 @@ public class TwitterController : BaseApiController
 	[HttpGet("tags/{tag}")]
 	public async Task<ActionResult<TimelineDto>> SearchTags(string tag, [FromQuery] string token)
 	{
-		string pattern = @"^(( -| )?((@|#|$)|((from|to|is|has):))?(\w{1,15})){1,3}$";
+		var tags = Uri.UnescapeDataString(tag).Split(" "); //Decode and split
+		if (tags.Count() > 3) return BadRequest("Too many tags, maximum allowed is 3");
 
-		if(!Regex.IsMatch(tag, pattern))
+		const int maxTagLen = 15;
+		string pattern = @"^( -| )?((@|#)|((from|to):))?(\w{1," + maxTagLen + "})$";
+		//Test each tag to see which tag is failing
+		for (int i = 0; i < tags.Count(); ++i)
 		{
-			var tags = tag.Split(" ");
-			if(tags.Count() > 3) return BadRequest("Too many tags, maximum allowed is 3");
-
-			//Test each tag to see which tag is failing
-			for(int i = 0; i < tags.Count(); ++i)
+			if (!Regex.IsMatch(tags[i], pattern))
 			{
-				if(!Regex.IsMatch(tags[i], pattern)) return BadRequest("Invalid tag \"" + tags[i] + "\"");
+				if (tags[i].Length > maxTagLen) return BadRequest("Tag too long \"" + tags[i] + "\"");
+				return BadRequest("Invalid tag \"" + tags[i] + "\"");
 			}
-
-			//Catch-all error
-			return BadRequest("Search query doesn't pass regex requirements");
 		}
 
 		//Gets by tags last 7 days
@@ -98,7 +97,7 @@ public class TwitterController : BaseApiController
 					"&media.fields=media_key,preview_image_url,type,url";
 
 		if (untilId != null && untilId.Length > 0) requestUrl += "&until_id=" + untilId;
-		
+
 		HttpResponseMessage response = await _httpClient.GetAsync(requestUrl);
 		if (!response.IsSuccessStatusCode) return BadRequest("Internal server error"); //Assume the worst (rate limit or api key issue)
 
@@ -115,7 +114,7 @@ public class TwitterController : BaseApiController
 		};
 
 		//If no media but we are paginated, return the media-less timeline which will remove the "Load more results" button
-		if(result.includes == null || result.includes.media == null) return NoContent();
+		if (result.includes == null || result.includes.media == null) return NoContent();
 
 		//Map the media and store it into the timelineDto
 		timeline.Media = new List<MediaDto>(); //Only create the list if there is media
@@ -136,11 +135,11 @@ public class TwitterController : BaseApiController
 
 			//Filter out low-effort or unrelated posts by checking public metrics
 			var tweetValue = matchedTweet.public_metrics.like_count + matchedTweet.public_metrics.reply_count + matchedTweet.public_metrics.retweet_count;
-			if(tweetValue > 15 || !enableScoring) timeline.Media.Add(newMedia);
+			if (tweetValue > 15 || !enableScoring) timeline.Media.Add(newMedia);
 		});
 
 		//Lack of images that match the score
-		if(timeline.Media.Count() == 0 || timeline.Media == null)
+		if (timeline.Media.Count() == 0 || timeline.Media == null)
 		{
 			timeline.Media = null; //Remove for ease of processing on the frontend
 			return NoContent();
