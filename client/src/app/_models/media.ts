@@ -1,4 +1,5 @@
 export interface Media {
+	handle: string;
 	tweetUrl: string;
 	mediaUrl: string;
 	thumbnailUrl: string;

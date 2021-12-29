@@ -71,7 +71,7 @@ public class TwitterController : BaseApiController
 		if (tags.Count() > 3) return BadRequest("Too many tags, maximum allowed is 3");
 
 		const int maxTagLen = 15;
-		string pattern = @"^( -| )?((@|#)|((from|to):))?(\w{1," + maxTagLen + "})$";
+		string pattern = @"^( ?-| )?((@|#)|((from|to):))?(\w{1," + maxTagLen + "})$";
 		//Test each tag to see which tag is failing
 		for (int i = 0; i < tags.Count(); ++i)
 		{
@@ -131,7 +131,8 @@ public class TwitterController : BaseApiController
 			var matchedTweet = result.data.First(tweet => tweet.attachments != null && tweet.attachments.media_keys.Contains(media.media_key));
 			var matchedUser = result.includes.users.First(user => user.id == matchedTweet.author_id);
 			newMedia.TweetUrl = "https://twitter.com/" + matchedUser.username + "/status/" + matchedTweet.id;
-			newMedia.PossiblySensitive = matchedTweet.possibly_sensitive; //nsfw
+			newMedia.PossiblySensitive = matchedTweet.possibly_sensitive; //Marked sensitive
+			newMedia.Handle = matchedUser.username;
 
 			//Filter out low-effort or unrelated posts by checking public metrics
 			var tweetValue = matchedTweet.public_metrics.like_count + matchedTweet.public_metrics.reply_count + matchedTweet.public_metrics.retweet_count;

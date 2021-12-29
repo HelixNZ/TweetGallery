@@ -22,11 +22,11 @@ export class HomeComponent implements OnInit {
   errors: string[] = []; //API errors
 
   constructor(
-      private apiService: ApiService,
-      public busyService: BusyService,
-      public settingsService: SettingsService,
-      private route: ActivatedRoute,
-      private router: Router) {
+    private apiService: ApiService,
+    public busyService: BusyService,
+    public settingsService: SettingsService,
+    private route: ActivatedRoute,
+    private router: Router) {
     //With or without this is fine. With feels nicer for UX, but without is also nice
     this.router.routeReuseStrategy.shouldReuseRoute = () => false;
   }
@@ -70,6 +70,14 @@ export class HomeComponent implements OnInit {
     });
   }
 
+  isScrolledDown() {
+    return window.scrollY > 200;
+  }
+
+  scrollToTop() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
   shouldDisplay(media: Media): boolean {
     var filtered = (media.type === 'photo' && this.settingsService.filters.photo) ||
       (media.type !== 'photo' && this.settingsService.filters.video);
@@ -99,16 +107,10 @@ export class HomeComponent implements OnInit {
     }
   }
 
-  searchUser() {
-    const handleRegex = new RegExp('^@(\\w{1,15})$'); //If matched to this, search by handle, otherwise tag search
-    var route = handleRegex.test(this.query) ? "/" + this.query : "tags/" + encodeURIComponent(this.query);
-    this.router.navigateByUrl(route);
-  }
-
   @HostListener('window:scroll', ['$event'])
   public scroll(event: any): any {
     if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight) {
-      if(!this.busyService.isBusy()) this.getNextPage(); //Consider putting a timer on this, however loadingNextPage should be enough
+      if (!this.busyService.isBusy()) this.getNextPage(); //Consider putting a timer on this, however loadingNextPage should be enough
     }
   }
 }

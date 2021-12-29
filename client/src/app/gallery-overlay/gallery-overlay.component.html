@@ -3,6 +3,12 @@
 		<img (load)="imageLoaded = true" (middleclick)="openImageInNewWindow()" [ngClass]="{'loading': !imageLoaded}"
 			src='{{media?.mediaUrl}}' alt="{{media?.mediaUrl}}">
 
+		<a class="info-bar" href='{{media?.tweetUrl}}' target="_blank">
+			<span class="info-at">@</span>
+			<span class="info-author">{{media?.handle}}</span>
+			<span class="info-collapse-text">View on <i class="fa fa-twitter"></i></span>
+		</a>
+
 		<div *ngIf="!imageLoaded" class="spinner">
 			<div class="spinner-border" role="status"> <span class="sr-only">Loading...</span> </div>
 		</div>

@@ -29,7 +29,7 @@ export class GalleryOverlayComponent {
   hide() {
     this.visible = false; //hide before the scrollbar comes back
     document.body.style.overflowY = "";
-    document.body.style.touchAction = "pan-y"; //consider not doing this
+    document.body.style.touchAction = ""; //consider not doing this
   }
 
   openImageInNewWindow() {
