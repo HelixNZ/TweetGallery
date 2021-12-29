@@ -1,62 +1,47 @@
 <div class="container">
-	<div class="row">
-		<div class="col nav-col">
-			<div class="card p-2 mt-5 mb-5">
-				<form role="form" class="form-inline" (ngSubmit)="searchUser()">
-					<div class="btn-group">
-						<input type="text" [(ngModel)]="query" class="form-control" name="query" placeholder="@, # or keyword" autocomplete="off" />
-						<button [disabled]="!query || states.loading || (query | lowercase) === (timeline?.query | lowercase)"
-								type="submit" class="btn btn-primary" 
-								[ngClass]="{'btn-secondary': !query}">
-							<i *ngIf="!states.loading" class="fa fa-search"></i>
-							<span *ngIf="states.loading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-						</button>
-					</div>
-					<div class="btn-group btn-group-toggle">
-						<label class="btn-primary" ngbButtonLabel [ngClass]="{'btn-secondary': !filters.photo || !timeline?.media}">
-							<input [disabled]="!timeline?.media" name="showphotos" type="checkbox"
-								ngbButton [(ngModel)]="filters.photo"
-								(click)="togglePhotoFilter()">
-							<i class="fa fa-image"></i>
-						</label>
-						<label class="btn-primary" ngbButtonLabel [ngClass]="{'btn-secondary': !filters.video || !timeline?.media}">
-							<input [disabled]="!timeline?.media" name="showvideos" type="checkbox"
-								ngbButton [(ngModel)]="filters.video"
-								(click)="toggleVideoFilter()">
-							<i class="fa fa-film"></i>
-						</label>
-						<label style="display: grid;" ngbButtonLabel [ngClass]="{'btn-secondary': !filters.flaggedSensitive || !timeline?.media, 'btn-danger': filters.flaggedSensitive}">
-							<input name="flaggedSensitive" type="checkbox" ngbButton [(ngModel)]="filters.flaggedSensitive" (click)="toggleShowFlagged()">
-							<span style="font-size: small; margin: -3px; margin-top: -7px">Flagged</span>
-							<span style="font-size: small; margin: -3px; margin-bottom: -7px">Sensitive</span>
-						</label>
-					</div>
-				</form>
-			</div>
-		</div>
+
+	<!-- Navbar -->
+	<app-navbar [timeline]="timeline" [query]="query"></app-navbar>
+
+	<!-- Error message -->
+	<div class="row justify-content-center" *ngIf="errors.length > 0">
+		<h4 *ngFor="let error of errors">{{error}}</h4>
 	</div>
 
-	<ng-container *ngFor="let error of errors">
-		<h4>{{error}}</h4>
+	<!-- Gallery -->
+	<div class="row justify-content-center mb-5" *ngIf="timeline?.media">
+		<!-- Image tiles -->
+		<ng-container *ngFor="let media of timeline?.media">
+			<app-gallery-tile [media]='media' (openOverlay)="galleryOverlay?.show(media)" *ngIf="shouldDisplay(media)"></app-gallery-tile>
+		</ng-container>
+
+		<!-- Image overlay -->
+		<app-gallery-overlay #galleryOverlay [timeline]="timeline"></app-gallery-overlay>
+	</div>
+
+	<!-- End of results -->
+	<!-- Loading spinner, located here so it appears under the first set of results -->
+	<div class="row justify-content-center" *ngIf="!multiplePages && busyService.isBusy()">
+		<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+	</div>
+
+	<!-- End of results message or button -->
+	<ng-container *ngIf="multiplePages">
+		<div class="row justify-content-center" *ngIf="futureTimeline?.media">
+			<button [disabled]="busyService.isBusy()" ngbButton class="btn btn-primary" (click)="getNextPage()">
+				<ng-container *ngIf="!busyService.isBusy()">Load more results</ng-container>
+				<span *ngIf="busyService.isBusy()" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+			</button>
+		</div>
+	
+		<div class="row justify-content-center" *ngIf="!futureTimeline?.media">
+			<h4>You've gone as far back as I can show!</h4>
+		</div>
 	</ng-container>
 
-	<div class="row justify-content-center">
-		<span *ngIf="states.loading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-		<ng-container *ngFor="let media of timeline?.media">
-			<app-gallery-tile [media]='media' (openOverlay)="openImageModal(media)" *ngIf="shouldDisplay(media)"></app-gallery-tile>
-		</ng-container>
+	<!-- Footer -->
+	<div class="footer row justify-content-center m-5">
+		<span class="mr-1">Made with ♥ by</span><a href="https://github.com/HelixNZ/" target="_blank">Helix</a>
 	</div>
-
-	<app-gallery-overlay #galleryOverlay [timeline]="timeline" [filters]="filters"></app-gallery-overlay>
-
-	<div class="row justify-content-center" *ngIf="futureTimeline?.media && states.multiplePages">
-		<button [disabled]="states.loadingNextPage" ngbButton class="btn btn-primary mt-5" (click)="getNextPage()">
-			<ng-container *ngIf="!states.loadingNextPage">Load more results</ng-container>
-			<span *ngIf="states.loadingNextPage" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-		</button>
-	</div>
-
-	<div class="row justify-content-center" *ngIf="!futureTimeline?.media && states.multiplePages">
-		<h4 class="mt-5">You've gone as far back as I can show!</h4>
-	</div>
+	
 </div>

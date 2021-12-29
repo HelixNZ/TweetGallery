@@ -1,20 +1,5 @@
-.nav-col {
-	display: flex;
-	justify-content: center;
-}
-
-.form-inline {
-	justify-content: center;
-	gap: 5px;
-	row-gap: 9px;
-}
-
-.form-inline label {
-	display: unset;
-}
-
-.btn-group {
-	flex-grow: 1;
+.footer, .footer a {
+	color: rgb(107, 124, 170);
 }
 
 h4 {

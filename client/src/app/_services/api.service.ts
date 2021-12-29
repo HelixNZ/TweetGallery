@@ -6,7 +6,7 @@ import { Timeline } from '../_models/timeline';
 @Injectable({
   providedIn: 'root'
 })
-export class TwitterService {
+export class ApiService {
   baseUrl: string = environment.apiUrl;
 
   constructor(private http: HttpClient) { }

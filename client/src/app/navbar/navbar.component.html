@@ -1,0 +1,45 @@
+<div class="row">
+	<div class="col nav-col">
+		<div class="card p-2 mt-5 mb-5">
+			<form role="form" class="form-inline" (ngSubmit)="searchUser()" autocomplete="off">
+
+				<!-- Search bar -->
+				<div class="btn-group">
+					<input type="text" [(ngModel)]="query" class="form-control" name="query" placeholder="@, # or keyword" />
+					<button [disabled]="!query || busyService.isBusy() || (query | lowercase) === (timeline?.query | lowercase)"
+							type="submit" class="btn btn-primary" 
+							[ngClass]="{'btn-secondary': !query}">
+						<i *ngIf="!busyService.isBusy()" class="fa fa-search"></i>
+						<span *ngIf="busyService.isBusy()" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+					</button>
+				</div>
+
+				<!-- Filter buttons -->
+				<div class="btn-group btn-group-toggle">
+					<!-- Photo filter -->
+					<label class="btn-primary" ngbButtonLabel [ngClass]="{'btn-secondary': !settingsService.filters.photo || !timeline?.media}">
+						<input [disabled]="!timeline?.media" name="showphotos" type="checkbox"
+							ngbButton [(ngModel)]="settingsService.filters.photo"
+							(click)="togglePhotoFilter()">
+						<i class="fa fa-image"></i>
+					</label>
+
+					<!-- Video filter -->
+					<label class="btn-primary" ngbButtonLabel [ngClass]="{'btn-secondary': !settingsService.filters.video || !timeline?.media}">
+						<input [disabled]="!timeline?.media" name="showvideos" type="checkbox"
+							ngbButton [(ngModel)]="settingsService.filters.video"
+							(click)="toggleVideoFilter()">
+						<i class="fa fa-film"></i>
+					</label>
+
+					<!-- Flagged filter -->
+					<label style="display: grid;" ngbButtonLabel [ngClass]="{'btn-secondary': !settingsService.filters.flaggedSensitive || !timeline?.media, 'btn-danger': settingsService.filters.flaggedSensitive}">
+						<input name="flaggedSensitive" type="checkbox" ngbButton [(ngModel)]="settingsService.filters.flaggedSensitive" (click)="toggleShowFlagged()">
+						<span style="font-size: small; margin: -3px; margin-top: -7px">Flagged</span>
+						<span style="font-size: small; margin: -3px; margin-bottom: -7px">Sensitive</span>
+					</label>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
