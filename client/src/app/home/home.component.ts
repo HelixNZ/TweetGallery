@@ -18,6 +18,7 @@ export class HomeComponent implements OnInit {
   timeline?: Timeline; //Main timeline being displayed
   futureTimeline?: Timeline; //Peek ahead for UX
   multiplePages: boolean = false; //More than one page has been successfully loaded
+  isHandleSearch: boolean = false; //Flag for gallery tile if search is for a handle or tags
   query = ""; //Query used and confirmed by the API
   errors: string[] = []; //API errors
 
@@ -33,10 +34,11 @@ export class HomeComponent implements OnInit {
 
   ngOnInit(): void {
     this.route.data.subscribe(routeData => {
-      var handle = (routeData.handle as string);
-      var tags = (routeData.tags as string);
+      let handle = (routeData.handle as string);
+      let tags = (routeData.tags as string);
 
-      var query = handle ? handle : tags ? tags : undefined;
+      let query = handle ? handle : tags ? tags : undefined;
+      this.isHandleSearch = handle ? true: false; //Show search button on tiles?
 
       if (query) {
         this.query = query; //temporary while we load the timeline

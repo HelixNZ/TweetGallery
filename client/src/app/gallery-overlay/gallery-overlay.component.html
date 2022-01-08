@@ -3,7 +3,7 @@
 		<img (load)="imageLoaded = true" (middleclick)="openImageInNewWindow()" [ngClass]="{'loading': !imageLoaded}"
 			src='{{media?.mediaUrl}}' alt="{{media?.mediaUrl}}">
 
-		<a class="info-bar" href='{{media?.tweetUrl}}' target="_blank">
+		<a class="info-bar" href='{{media?.tweetUrl}}' title="View Tweet on Twitter" target="_blank">
 			<i class="info-at fa fa-at"></i>
 			<span class="info-author">{{media?.handle}}</span>
 			<i class="info-twitter fa fa-twitter"></i>

@@ -7,6 +7,7 @@ import { Media } from '../_models/media';
   styleUrls: ['./gallery-tile.component.css']
 })
 export class GalleryTileComponent {
+  @Input() allowSearch: boolean = false;
   @Input() media?: Media;
   @Output() openOverlay = new EventEmitter();
   imageLoaded: boolean = false; //Flag for if the image has loaded

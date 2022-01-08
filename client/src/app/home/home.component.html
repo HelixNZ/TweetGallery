@@ -12,7 +12,7 @@
 	<div class="row justify-content-center mb-5" *ngIf="timeline?.media">
 		<!-- Image tiles -->
 		<ng-container *ngFor="let media of timeline?.media">
-			<app-gallery-tile [media]='media' (openOverlay)="galleryOverlay?.show(media)" *ngIf="shouldDisplay(media)"></app-gallery-tile>
+			<app-gallery-tile [allowSearch]="!isHandleSearch" [media]='media' (openOverlay)="galleryOverlay?.show(media)" *ngIf="shouldDisplay(media)"></app-gallery-tile>
 		</ng-container>
 
 		<!-- Image overlay -->
@@ -27,7 +27,7 @@
 
 	<!-- End of results message or button -->
 	<ng-container *ngIf="multiplePages">
-		<i *ngIf="isScrolledDown()" class="fa fa-chevron-circle-up scroll-to-top" (click)="scrollToTop()"></i>
+		<i *ngIf="isScrolledDown()" title="Scroll to top" class="fa fa-chevron-circle-up scroll-to-top" (click)="scrollToTop()"></i>
 
 		<div class="row justify-content-center" *ngIf="futureTimeline?.media">
 			<button [disabled]="busyService.isBusy()" ngbButton class="btn btn-primary" (click)="getNextPage()">

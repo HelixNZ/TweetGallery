@@ -9,7 +9,7 @@ h4 {
 .scroll-to-top {
 	cursor: pointer;
 	position: fixed;
-	color: #6e98c1;
+	color: #ccd4db;
 	font-weight: bold;
 	font-size: 60px;
 	text-shadow: 0 0 12px #0f1820;
@@ -20,5 +20,5 @@ h4 {
 }
 
 .scroll-to-top:hover {
-	color: #c6d4e2;
+	color: #57a4f1;
 }

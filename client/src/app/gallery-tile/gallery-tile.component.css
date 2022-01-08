@@ -12,21 +12,23 @@
 	}
 }
 
-.media-type {
+.media-type, .media-visit {
+	display: flex;
+	flex-direction: column;
+
 	cursor: pointer;
 	position:absolute;
 	bottom: 3%;
-	left:5%;
 	text-shadow: 0px 0px 5px black;
 	color: white;
 }
 
+.media-type {
+	left: 5%;
+}
+
 .media-visit {
-	position:absolute;
-	bottom: 3%;
-	right:5%;
-	text-shadow: 0px 0px 5px black;
-	color: white;
+	right: 5%;
 }
 
 .media-visit a {

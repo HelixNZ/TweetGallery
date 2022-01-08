@@ -20,18 +20,28 @@
 			(middleclick)="openLink(media?.mediaUrl)" 
 			(load)="imageLoaded = true" />
 			
-		<!-- Media type icon -->
-		<span class="media-type">
-			<i class="fa"
-			[ngClass]="{'fa-image': media?.type === 'photo', 'fa-film': media?.type !== 'photo'}"
-			(click)='media?.type === "photo" ? openOverlay.emit() : openLink(media?.tweetUrl)'></i>
+		<!-- Media type icon + Flagged sensitive -->
+		<!-- Title is type with _ subsituted in the case of a gif -->
+		<span class="media-type" (click)='media?.type === "photo" ? openOverlay.emit() : openLink(media?.tweetUrl)'>
+			<span>
+				<i *ngIf="media?.possiblySensitive" class="fa fa-flag" title="Flagged possibly sensitive"></i>
+			</span>
+			<span>
+				<i class="fa"
+					title='{{media?.type?.replace("_", " ") | titlecase}}'
+					[ngClass]="{'fa-image': media?.type === 'photo', 'fa-film': media?.type !== 'photo'}">
+				</i>
+			</span>
 		</span>
 
-		<!-- External link -->
+		<!-- External link, Search for @ -->
 		<!-- Forced opaque if media is external (video, animated gif) -->
 		<!-- Forced visible & opaque if on a touch device -->
 		<span class="media-visit">
-			<a href='{{media?.tweetUrl}}' target="_blank" [ngClass]="{'forced-ext-link': media?.type !== 'photo'}">
+			<a *ngIf="allowSearch" routerLink='/@{{media?.handle}}' title='Search for @{{media?.handle}}' [ngClass]="{'forced-ext-link': media?.type !== 'photo'}">
+				<i class="fa fa-search"></i>
+			</a>
+			<a href='{{media?.tweetUrl}}' title="View Tweet on Twitter" target="_blank" [ngClass]="{'forced-ext-link': media?.type !== 'photo'}">
 				<!-- <i class="fa fa-external-link-square"></i> -->
 				<i class="fa fa-twitter"></i>
 			</a>

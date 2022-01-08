@@ -17,7 +17,7 @@
 				<!-- Filter buttons -->
 				<div class="btn-group btn-group-toggle">
 					<!-- Photo filter -->
-					<label class="btn-primary" ngbButtonLabel [ngClass]="{'btn-secondary': !settingsService.filters.photo || !timeline?.media}">
+					<label class="btn-primary" title="Filter Photos" ngbButtonLabel [ngClass]="{'btn-secondary': !settingsService.filters.photo || !timeline?.media}">
 						<input [disabled]="!timeline?.media" name="showphotos" type="checkbox"
 							ngbButton [(ngModel)]="settingsService.filters.photo"
 							(click)="togglePhotoFilter()">
@@ -25,7 +25,7 @@
 					</label>
 
 					<!-- Video filter -->
-					<label class="btn-primary" ngbButtonLabel [ngClass]="{'btn-secondary': !settingsService.filters.video || !timeline?.media}">
+					<label class="btn-primary" title="Filter Videos" ngbButtonLabel [ngClass]="{'btn-secondary': !settingsService.filters.video || !timeline?.media}">
 						<input [disabled]="!timeline?.media" name="showvideos" type="checkbox"
 							ngbButton [(ngModel)]="settingsService.filters.video"
 							(click)="toggleVideoFilter()">
