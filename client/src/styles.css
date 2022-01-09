@@ -3,6 +3,16 @@
 	src: url("assets/Outfit/Outfit-VariableFont_wght.ttf");
 }
 
+@keyframes fadeInFromNone {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
 body {
 	background-color: rgb(21 38 54);
 	color: white;

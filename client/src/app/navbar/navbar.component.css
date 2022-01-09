@@ -20,3 +20,8 @@
 .btn-group {
 	flex-grow: 1;
 }
+
+hr {
+	background-color: rgb(122 134 145);
+	margin: 3px !important;
+}
