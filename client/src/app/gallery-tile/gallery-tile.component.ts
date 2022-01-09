@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { Media } from '../_models/media';
+import { SettingsService } from '../_services/settings.service';
 
 @Component({
   selector: 'app-gallery-tile',
@@ -11,6 +12,8 @@ export class GalleryTileComponent {
   @Input() media?: Media;
   @Output() openOverlay = new EventEmitter();
   imageLoaded: boolean = false; //Flag for if the image has loaded
+
+  constructor(public settingsService: SettingsService) {}
 
   openLink(url?: string) {
     if (url) window.open(url, "_blank");

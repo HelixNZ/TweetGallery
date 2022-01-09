@@ -1,8 +1,7 @@
 <div class="row">
 	<div class="col nav-col">
 		<div class="card p-2 mt-5 mb-5">
-			<form role="form" class="form-inline" (ngSubmit)="searchUser()" autocomplete="off">
-
+			<form role="form" class="form-inline" (ngSubmit)="search()" autocomplete="off">
 				<!-- Search bar -->
 				<div class="btn-group">
 					<input type="text" [(ngModel)]="query" class="form-control" name="query" placeholder="@, # or keyword" />
@@ -32,13 +31,32 @@
 						<i class="fa fa-film"></i>
 					</label>
 
-					<!-- Flagged filter -->
-					<label style="display: grid;" ngbButtonLabel [ngClass]="{'btn-secondary': !settingsService.filters.flaggedSensitive || !timeline?.media, 'btn-danger': settingsService.filters.flaggedSensitive}">
-						<input name="flaggedSensitive" type="checkbox" ngbButton [(ngModel)]="settingsService.filters.flaggedSensitive" (click)="toggleShowFlagged()">
-						<span style="font-size: small; margin: -3px; margin-top: -7px">Flagged</span>
-						<span style="font-size: small; margin: -3px; margin-bottom: -7px">Sensitive</span>
-					</label>
+					<!-- Options -->
+					<button name="options" type="button" class="btn btn-primary" popoverClass="optionsPopover" [ngbPopover]="popContent" [popoverTitle]="popTitle" [autoClose]="'outside'">
+						<i class="fa fa-gear fa-thin"></i>
+					</button>
 				</div>
+
+				<!-- Options Popover -->
+				<ng-template #popTitle>Search Options</ng-template>
+				<ng-template #popContent>
+					<div class="custom-control custom-switch">
+						<input name="flagged" type="checkbox" [(ngModel)]="settingsService.filters.flaggedSensitive" (ngModelChange)="saveOptions()" class="custom-control-input" id="customSwitch1">
+						<label class="custom-control-label" for="customSwitch1">Show potentially sensitive material</label>
+					</div>
+					<div class="custom-control custom-switch">
+						<input name="showFlag" type="checkbox" [(ngModel)]="settingsService.filters.showFlag" (ngModelChange)="saveOptions()" class="custom-control-input" id="customSwitch2">
+						<label class="custom-control-label" for="customSwitch2">Display flag on potentially sensitive images</label>
+					</div>
+					<div class="custom-control custom-switch">
+						<input name="scoring" type="checkbox" [(ngModel)]="settingsService.filters.scoring" (ngModelChange)="saveOptions()" class="custom-control-input" id="customSwitch3">
+						<label class="custom-control-label" for="customSwitch3">Filter by score to reduce unrelated (Applies next page/search)</label>
+					</div>
+					<div>
+						<label for="customRange1">Minimum Score: {{settingsService.filters.minScore}}</label>
+						<input name="minscore" type="range" class="custom-range" id="customRange1" [(ngModel)]="settingsService.filters.minScore" (ngModelChange)="saveOptions()">
+					</div>
+				</ng-template>
 			</form>
 		</div>
 	</div>

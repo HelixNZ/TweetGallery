@@ -46,7 +46,7 @@ public class TwitterController : BaseApiController
 	}
 
 	[HttpGet("timeline/{username}")]
-	public async Task<ActionResult<TimelineDto>> GetTimeline(string username, [FromQuery] string token)
+	public async Task<ActionResult<TimelineDto>> GetTimeline(string username, [FromQuery] SearchParams searchParams)
 	{
 		//Test handle
 		username = Uri.UnescapeDataString(username); //If it's been encoded
@@ -59,13 +59,13 @@ public class TwitterController : BaseApiController
 		if (user.Protected) return Unauthorized("User account is protected");
 
 		var requestUrl = "users/" + user.Id + "/tweets?exclude=replies,retweets";
-		var result = await QueryTimeline(requestUrl, user.Username, token, false);
+		var result = await QueryTimeline(requestUrl, user.Username, searchParams);
 
 		return result;
 	}
 
 	[HttpGet("tags/{tag}")]
-	public async Task<ActionResult<TimelineDto>> SearchTags(string tag, [FromQuery] string token)
+	public async Task<ActionResult<TimelineDto>> SearchTags(string tag, [FromQuery] SearchParams searchParams)
 	{
 		var tags = Uri.UnescapeDataString(tag).Split(" "); //Decode and split
 		if (tags.Count() > 3) return BadRequest("Too many tags, maximum allowed is 3");
@@ -85,18 +85,18 @@ public class TwitterController : BaseApiController
 		//Gets by tags last 7 days
 		//We are allowed up to 5 tags, so using 2 pre-tags means 3 hashtags can be searched by the user
 		var requestUrl = "tweets/search/recent?query=" + Uri.EscapeDataString(tag) + " -is:retweet has:media";
-		var result = await QueryTimeline(requestUrl, tag, token, true);
+		var result = await QueryTimeline(requestUrl, tag, searchParams);
 
 		return result;
 	}
 
-	private async Task<ActionResult<TimelineDto>> QueryTimeline(string requestUrl, string query, string untilId, bool enableScoring)
+	private async Task<ActionResult<TimelineDto>> QueryTimeline(string requestUrl, string query, SearchParams searchParams)
 	{
 		//Pagination token
 		requestUrl += "&max_results=100&expansions=attachments.media_keys,author_id&tweet.fields=possibly_sensitive,public_metrics" +
 					"&media.fields=media_key,preview_image_url,type,url";
 
-		if (untilId != null && untilId.Length > 0) requestUrl += "&until_id=" + untilId;
+		if (searchParams.Token.Length > 0) requestUrl += "&until_id=" + searchParams.Token;
 
 		HttpResponseMessage response = await _httpClient.GetAsync(requestUrl);
 		if (!response.IsSuccessStatusCode) return BadRequest("Internal server error"); //Assume the worst (rate limit or api key issue)
@@ -104,7 +104,7 @@ public class TwitterController : BaseApiController
 		var result = await response.Content.ReadFromJsonAsync<Timeline>();
 
 		//If no media returned, and pagination token wasn't included, then user had no media off the bat, so assume nothing of interest
-		if (untilId == null && result.includes == null) return NoContent();
+		if (searchParams.Token.Length == 0 && result.includes == null) return NoContent();
 
 		//Create timeline
 		var timeline = new TimelineDto
@@ -124,7 +124,7 @@ public class TwitterController : BaseApiController
 			{
 				Type = media.type,
 				MediaUrl = media.url != null ? media.url : media.preview_image_url, //if no url, then it's not a photo, use the preview image instead
-				ThumbnailUrl = media.preview_image_url != null ? media.preview_image_url : media.url.Substring(0, media.url.LastIndexOf(".")) + "?format=jpg&name=thumb",
+				ThumbnailUrl = media.preview_image_url != null ? media.preview_image_url : media.url + "?name=thumb",
 			};
 
 			//Find matching tweet
@@ -136,7 +136,7 @@ public class TwitterController : BaseApiController
 
 			//Filter out low-effort or unrelated posts by checking public metrics
 			var tweetValue = matchedTweet.public_metrics.like_count + matchedTweet.public_metrics.reply_count + matchedTweet.public_metrics.retweet_count;
-			if (tweetValue > 15 || !enableScoring) timeline.Media.Add(newMedia);
+			if (tweetValue >= searchParams.MinScore) timeline.Media.Add(newMedia);
 		});
 
 		//Lack of images that match the score

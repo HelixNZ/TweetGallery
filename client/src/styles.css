@@ -11,3 +11,28 @@ body {
 	overflow-x: hidden;
 	touch-action: pan-y;
 }
+
+.popover  {
+	font-family: "Outfit";
+	background-color: rgb(75, 92, 108);
+	width: max-content;
+	top: -8px !important;
+	left: -100% !important;
+}
+
+.popover-header {
+	background-color: rgb(42, 58, 72);
+	border-bottom: 1px solid #7a8691;
+}
+
+.popover-body {
+	color: white;
+}
+
+.popover .arrow {
+	display: none;
+}
+
+.popover .arrow::after, .popover .popover-header::before {
+	border-bottom-color: rgb(42, 58, 72);
+}

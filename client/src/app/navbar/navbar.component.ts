@@ -14,28 +14,26 @@ export class NavbarComponent {
   @Input() query: string = "";
 
   constructor(public busyService: BusyService, 
-    public settingsService: SettingsService,
-    private router: Router) { }
+              public settingsService: SettingsService,
+              private router: Router) { }
 
-  searchUser() {
+  search() {
     const handleRegex = new RegExp('^@(\\w{1,15})$'); //If matched to this, search by handle, otherwise tag search
-    var route = handleRegex.test(this.query) ? "/" + this.query : "tags/" + encodeURIComponent(this.query);
+    let route = handleRegex.test(this.query) ? "/" + this.query : "tags/" + encodeURIComponent(this.query);
     this.router.navigateByUrl(route);
   }
 
-  toggleShowFlagged() {
-    this.settingsService.filters.flaggedSensitive = !this.settingsService.filters.flaggedSensitive;
-    this.settingsService.saveSettings();
+  saveOptions() {
+    this.settingsService.saveSettings(); //Flagged is stored locally
   }
 
   togglePhotoFilter() {
     this.settingsService.filters.photo = !this.settingsService.filters.photo;
-    if (!this.settingsService.filters.photo) this.settingsService.filters.video = true;
+    if (!this.settingsService.filters.photo) this.settingsService.filters.video = true; //Flip+enforce video filter
   }
 
   toggleVideoFilter() {
     this.settingsService.filters.video = !this.settingsService.filters.video;
-    if (!this.settingsService.filters.video) this.settingsService.filters.photo = true;
+    if (!this.settingsService.filters.video) this.settingsService.filters.photo = true; //Flip+enforce photo filter
   }
-
 }

@@ -24,7 +24,7 @@
 		<!-- Title is type with _ subsituted in the case of a gif -->
 		<span class="media-type" (click)='media?.type === "photo" ? openOverlay.emit() : openLink(media?.tweetUrl)'>
 			<span>
-				<i *ngIf="media?.possiblySensitive" class="fa fa-flag" title="Flagged possibly sensitive"></i>
+				<i *ngIf="media?.possiblySensitive && settingsService.filters.showFlag" class="fa fa-flag" title="Flagged possibly sensitive"></i>
 			</span>
 			<span>
 				<i class="fa"
