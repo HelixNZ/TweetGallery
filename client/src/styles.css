@@ -27,8 +27,6 @@ body {
 	background-color: rgb(75, 92, 108);
 	transform: unset !important;
 	width: max-content;
-	/* top: -8px !important;
-	left: -100% !important; */
 }
 
 .popover-header {

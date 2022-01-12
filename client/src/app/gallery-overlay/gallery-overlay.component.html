@@ -1,5 +1,11 @@
-<div class="container overlay" *ngIf="visible" (click)="hide()">
+<div class="container overlay" *ngIf="visible">
+	<!-- Tinted background -->
+	<div class="overlay overlay-bg" (click)="hide()"></div>
+
+	<!-- Visible card with media -->
 	<div class="overlay-card">
+		<!-- Close button -->
+		<button type="button" (click)="hide()" class="btn"><i class="fa fa-close"></i></button>
 
 		<!-- Image template -->
 		<ng-template #image>
@@ -9,13 +15,15 @@
 
 		<!-- Video template -->
 		<!-- GIFs will autoplay, loop with no controls -->
-		<!-- Videos will show controls but not loop/autoplay -->
+		<!-- Videos will autoplay, show controls and be muted -->
+		<!-- Not using source tags as they don't update correctly -->
 		<ng-template #video>
 			<video (middleclick)="openImageInNewWindow()"
 					src='{{media?.mediaUrl}}'
 					poster="{{media?.thumbnailUrl}}"
-					[autoplay]='media?.type === "video" ? "" : "autoplay"' 
-					[loop]='media?.type === "video" ? "" : "loop"'
+					autoplay
+					loop
+					[muted]="'muted'"
 					[controls]='media?.type === "video" ? "controls" : ""'
 					>
 			</video>
