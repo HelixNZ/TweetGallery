@@ -17,12 +17,14 @@
 		<!-- GIFs will autoplay, loop with no controls -->
 		<!-- Videos will autoplay, show controls and be muted -->
 		<!-- Not using source tags as they don't update correctly -->
+		<!-- playsinline is for iOS -->
 		<ng-template #video>
 			<video (middleclick)="openImageInNewWindow()"
 					src='{{media?.mediaUrl}}'
 					poster="{{media?.thumbnailUrl}}"
 					autoplay
 					loop
+					playsinline
 					[muted]="'muted'"
 					[controls]='media?.type === "video" ? "controls" : ""'
 					>
