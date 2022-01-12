@@ -25,14 +25,23 @@ body {
 .popover  {
 	font-family: "Outfit";
 	background-color: rgb(75, 92, 108);
+	transform: unset !important;
 	width: max-content;
-	top: -8px !important;
-	left: -100% !important;
+	/* top: -8px !important;
+	left: -100% !important; */
 }
 
 .popover-header {
 	background-color: rgb(42, 58, 72);
 	border-bottom: 1px solid #7a8691;
+	display: flex;
+	justify-content: space-between;
+	align-items: baseline;
+}
+
+.popover-header button, .popover-header button:hover {
+	color: white;
+	padding: 0;
 }
 
 .popover-body {

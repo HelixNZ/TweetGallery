@@ -21,7 +21,7 @@ export class GalleryOverlayComponent {
   show(media: Media) {
     document.body.style.overflowY = "hidden";
     document.body.style.touchAction = "pan-x";
-    this.imageLoaded = false;
+    this.imageLoaded = media.type === "photo" ? false : true; //videos/gifs have their own spinner
     this.media = media;
     this.visible = true; //display after setup
   }
@@ -33,7 +33,7 @@ export class GalleryOverlayComponent {
   }
 
   openImageInNewWindow() {
-    if (this.media) window.open(this.media.type === "photo" ? this.media.mediaUrl : this.media.tweetUrl, "_blank");
+    if (this.media) window.open(this.media.mediaUrl, "_blank");
   }
 
   navigateMedia(dir: number) {
@@ -57,7 +57,7 @@ export class GalleryOverlayComponent {
         }
 
         if (this.media !== media[index]) {
-          this.imageLoaded = false;
+          this.imageLoaded = media[index].type === "photo" ? false : true; //videos/gifs have their own spinner
           this.media = media[index];
         }
       }

@@ -1,14 +1,37 @@
 <div class="container overlay" *ngIf="visible" (click)="hide()">
 	<div class="overlay-card">
-		<img (load)="imageLoaded = true" (middleclick)="openImageInNewWindow()" [ngClass]="{'loading': !imageLoaded}"
-			src='{{media?.mediaUrl}}' alt="{{media?.mediaUrl}}">
 
+		<!-- Image template -->
+		<ng-template #image>
+			<img (load)="imageLoaded = true" (middleclick)="openImageInNewWindow()" [ngClass]="{'loading': !imageLoaded}"
+			src='{{media?.mediaUrl}}' alt="{{media?.mediaUrl}}">
+		</ng-template>
+
+		<!-- Video template -->
+		<!-- GIFs will autoplay, loop with no controls -->
+		<!-- Videos will show controls but not loop/autoplay -->
+		<ng-template #video>
+			<video (middleclick)="openImageInNewWindow()"
+					src='{{media?.mediaUrl}}'
+					poster="{{media?.thumbnailUrl}}"
+					[autoplay]='media?.type === "video" ? "" : "autoplay"' 
+					[loop]='media?.type === "video" ? "" : "loop"'
+					[controls]='media?.type === "video" ? "controls" : ""'
+					>
+			</video>
+		</ng-template>
+
+		<!-- Select image or video -->
+		<ng-container *ngIf='media?.type === "photo"; then image else video'></ng-container>
+
+		<!-- Reference bar, link to tweet and show handle -->
 		<a class="info-bar" href='{{media?.tweetUrl}}' title="View Tweet on Twitter" target="_blank">
 			<i class="info-at fa fa-at"></i>
 			<span class="info-author">{{media?.handle}}</span>
 			<i class="info-twitter fa fa-twitter"></i>
 		</a>
 
+		<!-- Loading spinner for images only -->
 		<div *ngIf="!imageLoaded" class="spinner">
 			<div class="spinner-border" role="status"> <span class="sr-only">Loading...</span> </div>
 		</div>

@@ -32,13 +32,13 @@
 					</label>
 
 					<!-- Options -->
-					<button name="options" title="Options" type="button" class="btn btn-primary" popoverClass="optionsPopover" [ngbPopover]="popContent" [popoverTitle]="popTitle" [autoClose]="'outside'">
+					<button name="options" title="Options" type="button" class="btn btn-primary" popoverClass="optionsPopover" [ngbPopover]="popContent" #p="ngbPopover" [popoverTitle]="popTitle" [autoClose]="'outside'">
 						<i class="fa fa-gear fa-thin"></i>
 					</button>
 				</div>
 
 				<!-- Options Popover -->
-				<ng-template #popTitle>Search Options</ng-template>
+				<ng-template #popTitle>Search Options <button type="button" (click)="p.close()" class="btn"><i class="fa fa-close"></i></button></ng-template>
 				<ng-template #popContent>
 					<div class="custom-control custom-switch">
 						<input name="flagged" type="checkbox" [(ngModel)]="settingsService.filters.flaggedSensitive" (ngModelChange)="saveOptions()" class="custom-control-input" id="customSwitch1">
@@ -52,11 +52,20 @@
 					<hr>
 					<div class="custom-control custom-switch">
 						<input name="scoring" type="checkbox" [(ngModel)]="settingsService.filters.scoring" (ngModelChange)="saveOptions()" class="custom-control-input" id="customSwitch3">
-						<label class="custom-control-label" for="customSwitch3">Filter by score to reduce unrelated (Applies next page/search)</label>
+						<label class="custom-control-label" for="customSwitch3">Filter by score (Next Request)</label>
 					</div>
 					<div class="mt-2">
-						<label for="customRange1">Minimum Score: {{settingsService.filters.minScore}}</label>
+						<label for="customRange1">Minimum Tweet Score: {{settingsService.filters.minScore}}</label>
 						<input name="minscore" type="range" class="custom-range" id="customRange1" [(ngModel)]="settingsService.filters.minScore" (ngModelChange)="saveOptions()">
+					</div>
+					<hr>
+					<div class="custom-control custom-switch">
+						<input name="tagsfiltering" type="checkbox" [(ngModel)]="settingsService.filters.tagLimiting" (ngModelChange)="saveOptions()" class="custom-control-input" id="customSwitch4">
+						<label class="custom-control-label" for="customSwitch4">Filter by tag count (Next Request)</label>
+					</div>
+					<div class="mt-2">
+						<label for="customRange1">Max Tweet Hashtags: {{settingsService.filters.maxTags}}</label>
+						<input name="maxtags" type="range" class="custom-range" id="customRange2" [(ngModel)]="settingsService.filters.maxTags" (ngModelChange)="saveOptions()">
 					</div>
 				</ng-template>
 			</form>

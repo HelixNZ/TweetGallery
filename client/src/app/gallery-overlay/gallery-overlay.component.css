@@ -40,7 +40,7 @@
 	align-items: flex-end;
 }
 
-.overlay-card img {
+.overlay-card img, .overlay-card video {
 	align-self: center;
 	object-fit: contain;
 	max-width: 97.5vw;

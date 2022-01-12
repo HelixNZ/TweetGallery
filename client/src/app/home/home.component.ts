@@ -6,6 +6,7 @@ import { GalleryOverlayComponent } from '../gallery-overlay/gallery-overlay.comp
 import { ApiService } from '../_services/api.service';
 import { BusyService } from '../_services/busy.service';
 import { SettingsService } from '../_services/settings.service';
+import { take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-home',
@@ -33,7 +34,7 @@ export class HomeComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.route.data.subscribe(routeData => {
+    this.route.data.pipe(take(1)).subscribe(routeData => {
       let handle = (routeData.handle as string);
       let tags = (routeData.tags as string);
 
@@ -99,7 +100,7 @@ export class HomeComponent implements OnInit {
 
       //Grab next page if there is one
       if (this.futureTimeline?.nextPageToken) {
-        this.apiService.getTimeline(this.timeline.query, this.futureTimeline.nextPageToken).subscribe(timeline => {
+        this.apiService.getTimeline(this.timeline.query, this.futureTimeline.nextPageToken).pipe(take(1)).subscribe(timeline => {
           this.futureTimeline = timeline;
         });
       }

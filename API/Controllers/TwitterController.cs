@@ -93,7 +93,7 @@ public class TwitterController : BaseApiController
 	private async Task<ActionResult<TimelineDto>> QueryTimeline(string requestUrl, string query, SearchParams searchParams)
 	{
 		//Pagination token
-		requestUrl += "&max_results=100&expansions=attachments.media_keys,author_id&tweet.fields=possibly_sensitive,public_metrics" +
+		requestUrl += "&max_results=100&expansions=attachments.media_keys,author_id&tweet.fields=possibly_sensitive,public_metrics,entities" +
 					"&media.fields=media_key,preview_image_url,type,url";
 
 		if (searchParams.Token.Length > 0) requestUrl += "&until_id=" + searchParams.Token;
@@ -134,9 +134,21 @@ public class TwitterController : BaseApiController
 			newMedia.PossiblySensitive = matchedTweet.possibly_sensitive; //Marked sensitive
 			newMedia.Handle = matchedUser.username;
 
-			//Filter out low-effort or unrelated posts by checking public metrics
+			//Temporary video testing
+			if (media.type != "photo") newMedia.MediaUrl = "https://fxtwitter.com/dir/twitter.com/i/status/" + matchedTweet.id.ToString();
+
+			//Filtering
+			var passedFilter = false;
+
+			//Filter out low-effort or unrelated posts by scoring public metrics
 			var tweetValue = matchedTweet.public_metrics.like_count + matchedTweet.public_metrics.reply_count + matchedTweet.public_metrics.retweet_count;
-			if (tweetValue >= searchParams.MinScore) timeline.Media.Add(newMedia);
+			if (tweetValue >= searchParams.MinScore) passedFilter = true;
+
+			//Filter out hashtag hijacking by counting how many hashtags are in the tweet
+			if (matchedTweet.entities.hashtags != null && matchedTweet.entities.hashtags.Count() >= searchParams.MaxTags) passedFilter = false;
+
+			//If passed both filters, add the media to the list
+			if (passedFilter) timeline.Media.Add(newMedia);
 		});
 
 		//Lack of images that match the score

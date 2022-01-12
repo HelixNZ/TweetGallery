@@ -20,6 +20,7 @@ export class ApiService {
     //Build params, scoring only works on tags so ignore scoring for handles
     let params = (paginationToken ? '?token=' + paginationToken : '');
     params += (!isHandle && this.settings.filters.scoring) ? ((params != '' ? "&" : "?") + "minscore=" + String(this.settings.filters.minScore)) : '';
+    params += (!isHandle && this.settings.filters.tagLimiting) ? ((params != '' ? "&" : "?") + "maxtags=" + String(this.settings.filters.maxTags)) : '';
 
     return this.http.get<Timeline>(this.baseUrl + endpoint + params);
   }

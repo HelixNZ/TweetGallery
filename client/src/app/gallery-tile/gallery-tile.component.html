@@ -1,30 +1,19 @@
 <div class="col-sm-0 tile-visible">
 	<div class="card-img-wrapper p-1">
-		<!-- Thumbnail image template -->
-		<ng-template #thumbnail>
-			<img
-			src='{{media?.thumbnailUrl}}'
-			alt='{{media?.thumbnailUrl}}'
-			class="card-img"
-			draggable="false"
-			(click)='media?.type === "photo" ? openOverlay.emit() : openLink(media?.tweetUrl)'
-			(middleclick)='openLink(media?.mediaUrl)'
-			(load)='imageLoaded = true'
-			[ngClass]='{"blurimg": media?.possiblySensitive && settingsService.filters.showFlag}' />
-		</ng-template>
-
-		<!-- Wrapped in an external link for non-photo media -->
-		<ng-template #thumbnailwithlink>
-			<!-- Video or Animated GIF, Replace this with a video player when possible -->
-			<a href="{{media?.tweetUrl}}" target="_blank"><ng-template [ngTemplateOutlet]="thumbnail"></ng-template></a>
-		</ng-template>
-
-		<!-- Select correct template for media type -->
-		<ng-container *ngIf='media?.type === "photo"; then thumbnail else thumbnailwithlink'></ng-container>
+		<!-- Thumbnail image -->
+		<img
+		src='{{media?.thumbnailUrl}}'
+		alt='{{media?.thumbnailUrl}}'
+		class="card-img"
+		draggable="false"
+		(click)='openOverlay.emit()'
+		(middleclick)='openLink(media?.mediaUrl)'
+		(load)='imageLoaded = true'
+		[ngClass]='{"blurimg": media?.possiblySensitive && settingsService.filters.showFlag}' />
 
 		<!-- Media type icon + Flagged sensitive -->
 		<!-- Title is type with _ subsituted in the case of a gif -->
-		<span class="media-type" (click)='media?.type === "photo" ? openOverlay.emit() : openLink(media?.tweetUrl)'>
+		<span class="media-type" (click)='openOverlay.emit()'>
 			<span>
 				<i *ngIf='media?.possiblySensitive && settingsService.filters.showFlag' class="fa fa-flag" title="Flagged possibly sensitive"></i>
 			</span>
@@ -40,10 +29,10 @@
 		<!-- Forced opaque if media is external (video, animated gif) -->
 		<!-- Forced visible & opaque if on a touch device -->
 		<span class="media-visit">
-			<a *ngIf="allowSearch" routerLink='/@{{media?.handle}}' title='Search for @{{media?.handle}}' [ngClass]="{'forced-ext-link': media?.type !== 'photo'}">
+			<a *ngIf="allowSearch" routerLink='/@{{media?.handle}}' title='Search for @{{media?.handle}}'>
 				<i class="fa fa-search"></i>
 			</a>
-			<a href='{{media?.tweetUrl}}' title="View Tweet on Twitter" target="_blank" [ngClass]="{'forced-ext-link': media?.type !== 'photo'}">
+			<a href='{{media?.tweetUrl}}' title="View Tweet on Twitter" target="_blank">
 				<!-- <i class="fa fa-external-link-square"></i> -->
 				<i class="fa fa-twitter"></i>
 			</a>

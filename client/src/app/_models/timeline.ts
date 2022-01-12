@@ -4,5 +4,4 @@ export interface Timeline {
 	query: string;
 	media?: Media[];
 	nextPageToken?: string;
-	error?: string;
 }

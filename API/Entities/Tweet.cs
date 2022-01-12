@@ -8,4 +8,5 @@ public class Tweet
     public Attachments attachments { get; set; }
     public bool possibly_sensitive { get; set; }
     public PublicMetrics public_metrics { get; set; }
+    public Entities entities { get; set; }
 }
