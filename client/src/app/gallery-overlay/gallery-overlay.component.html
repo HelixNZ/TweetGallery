@@ -13,6 +13,12 @@
 			src='{{media?.mediaUrl}}' alt="{{media?.mediaUrl}}">
 		</ng-template>
 
+		<!-- Shown while video resolves -->
+		<ng-template #poster>
+			<img (load)="imageLoaded = true" (middleclick)="openImageInNewWindow()" [ngClass]="{'loading': !imageLoaded}"
+			src='{{media?.thumbnailUrl}}' alt="{{media?.thumbnailUrl}}">
+		</ng-template>
+
 		<!-- Video template -->
 		<!-- GIFs will autoplay, loop with no controls -->
 		<!-- Videos will autoplay, show controls and be muted -->
@@ -28,11 +34,14 @@
 					(canplay)="imageLoaded = true"
 					(playing)="imageLoaded = true"
 					>
+					<p>Videos are not supported by your browser</p>
 			</video>
 		</ng-template>
 
 		<!-- Select image or video -->
-		<ng-container *ngIf='media?.type === "photo"; then image else video'></ng-container>
+		<ng-container *ngIf='media?.type === "photo"; then image'></ng-container>
+		<ng-container *ngIf='media?.type !== "photo" && videoResolved; then video'></ng-container>
+		<ng-container *ngIf='media?.type !== "photo" && !videoResolved; then poster'></ng-container>
 
 		<!-- Reference bar, link to tweet and show handle -->
 		<a class="info-bar" href='{{media?.tweetUrl}}' title="View Tweet on Twitter" target="_blank">

@@ -108,7 +108,7 @@ public class TwitterController : BaseApiController
 		var videoUrl = response.Headers.Location;
 
 		if(videoUrl == null) BadRequest("Error fetching video");
-		return Ok(videoUrl);
+		return Ok("\"" + videoUrl.GetLeftPart(UriPartial.Path) + "\"");
 	}
 
 	private async Task<ActionResult<TimelineDto>> QueryTimeline(string requestUrl, string query, SearchParams searchParams)
@@ -156,7 +156,7 @@ public class TwitterController : BaseApiController
 			newMedia.Handle = matchedUser.username;
 
 			//Temporary video testing
-			if (media.type != "photo") newMedia.MediaUrl = "/api/Twitter/video/" + matchedTweet.id.ToString();
+			if (media.type != "photo") newMedia.MediaUrl = "video/" + matchedTweet.id.ToString();
 
 			//Filtering
 			var passedFilter = false;

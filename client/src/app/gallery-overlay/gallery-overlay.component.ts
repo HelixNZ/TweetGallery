@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, HostListener, Input } from '@angular/core';
 import { take } from 'rxjs/operators';
+import { environment } from 'src/environments/environment';
 import { Media } from '../_models/media';
 import { Timeline } from '../_models/timeline';
 import { SettingsService } from '../_services/settings.service';
@@ -15,6 +16,7 @@ export class GalleryOverlayComponent {
   media?: Media;
   visible: boolean = false;
   imageLoaded: boolean = false;
+  videoResolved: boolean = false;
   swipeCoord?: [number, number];
   swipeTime?: number;
 
@@ -70,14 +72,16 @@ export class GalleryOverlayComponent {
 
   //Used temporarily to resolve the media for mobile
   resolveMedia(media: Media) {
-    if(media.type !== "photo" && media.mediaUrl.indexOf("api") > 0) {
-      this.http.get<string>(media.mediaUrl).pipe(take(1)).subscribe(response => {
+    if(media.type !== "photo" && media.mediaUrl.startsWith("video/")) {
+      this.videoResolved = false;
+      this.http.get<string>(environment.apiUrl + media.mediaUrl).pipe(take(1)).subscribe(response => {
           media.mediaUrl = response;
+          this.videoResolved = true;
           this.imageLoaded = true;
       });
     }
   }
-
+  
   //Keypress
   @HostListener('window:keyup', ['$event'])
   public keyup(event: KeyboardEvent): any {
