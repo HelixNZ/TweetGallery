@@ -156,7 +156,7 @@ public class TwitterController : BaseApiController
 			newMedia.Handle = matchedUser.username;
 
 			//Temporary video testing
-			if (media.type != "photo") newMedia.MediaUrl = "api/Twitter/video/" + matchedTweet.id.ToString();
+			if (media.type != "photo") newMedia.MediaUrl = "/api/Twitter/video/" + matchedTweet.id.ToString();
 
 			//Filtering
 			var passedFilter = false;
