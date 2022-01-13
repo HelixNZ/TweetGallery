@@ -90,6 +90,27 @@ public class TwitterController : BaseApiController
 		return result;
 	}
 
+	[HttpGet("video/{id}")]
+	public async Task<ActionResult<string>> ResolveVideo(string id)
+	{
+		//Prevent 301 redirect
+		var handler = new HttpClientHandler() 
+		{
+			AllowAutoRedirect = false
+		};
+
+		var client = new HttpClient(handler);
+		client.BaseAddress = new Uri("https://fxtwitter.com/");
+		HttpResponseMessage response = await client.GetAsync("dir/twitter.com/i/status/" + id);
+		
+		//301 moved for fxtwitter
+		if(response.StatusCode != System.Net.HttpStatusCode.Moved) return NotFound();
+		var videoUrl = response.Headers.Location;
+
+		if(videoUrl == null) BadRequest("Error fetching video");
+		return Ok(videoUrl);
+	}
+
 	private async Task<ActionResult<TimelineDto>> QueryTimeline(string requestUrl, string query, SearchParams searchParams)
 	{
 		//Pagination token
@@ -135,7 +156,7 @@ public class TwitterController : BaseApiController
 			newMedia.Handle = matchedUser.username;
 
 			//Temporary video testing
-			if (media.type != "photo") newMedia.MediaUrl = "https://fxtwitter.com/dir/twitter.com/i/status/" + matchedTweet.id.ToString();
+			if (media.type != "photo") newMedia.MediaUrl = "https://localhost:5001/api/Twitter/video/" + matchedTweet.id.ToString();
 
 			//Filtering
 			var passedFilter = false;

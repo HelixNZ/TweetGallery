@@ -1,4 +1,6 @@
+import { HttpClient } from '@angular/common/http';
 import { Component, HostListener, Input } from '@angular/core';
+import { take } from 'rxjs/operators';
 import { Media } from '../_models/media';
 import { Timeline } from '../_models/timeline';
 import { SettingsService } from '../_services/settings.service';
@@ -16,13 +18,14 @@ export class GalleryOverlayComponent {
   swipeCoord?: [number, number];
   swipeTime?: number;
 
-  constructor(public settingsService: SettingsService) { }
+  constructor(private http: HttpClient, public settingsService: SettingsService) { }
 
   show(media: Media) {
     document.body.style.overflowY = "hidden";
     document.body.style.touchAction = "pan-x";
-    this.imageLoaded = media.type === "photo" ? false : true; //videos/gifs have their own spinner
+    this.imageLoaded = false;
     this.media = media;
+    this.resolveMedia(this.media);
     this.visible = true; //display after setup
   }
 
@@ -57,10 +60,21 @@ export class GalleryOverlayComponent {
         }
 
         if (this.media !== media[index]) {
-          this.imageLoaded = media[index].type === "photo" ? false : true; //videos/gifs have their own spinner
+          this.imageLoaded = false; //videos/gifs have their own spinner
           this.media = media[index];
+          this.resolveMedia(this.media);
         }
       }
+    }
+  }
+
+  //Used temporarily to resolve the media for mobile
+  resolveMedia(media: Media) {
+    if(media.type !== "photo" && media.mediaUrl.indexOf("api") > 0) {
+      this.http.get<string>(media.mediaUrl).pipe(take(1)).subscribe(response => {
+          media.mediaUrl = response;
+          this.imageLoaded = true;
+      });
     }
   }
 

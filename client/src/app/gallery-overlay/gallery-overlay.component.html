@@ -22,11 +22,11 @@
 			<video (middleclick)="openImageInNewWindow()"
 					src='{{media?.mediaUrl}}'
 					poster="{{media?.thumbnailUrl}}"
-					autoplay
-					loop
-					playsinline
+					autoplay loop playsinline
 					[muted]="'muted'"
 					[controls]='media?.type === "video" ? "controls" : ""'
+					(canplay)="imageLoaded = true"
+					(playing)="imageLoaded = true"
 					>
 			</video>
 		</ng-template>
