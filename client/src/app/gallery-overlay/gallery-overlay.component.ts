@@ -84,9 +84,10 @@ export class GalleryOverlayComponent {
 
   //Fix for videos stuttering, failing to load, having issues in general
   //I don't know why they stutter in the first place, may be due to Twitter's way of serving files
+  //Included NaN fix for missing metadata, force 9999 which seems to work fine in this case
   fragmentVideo(video: any) {
     if(video.src.includes("#")) video.play();
-    else video.src = video.src + ("#0," + video.duration.toFixed(0).toString());
+    else video.src = video.src + ("#0," + (isNaN(video.duration) ? "9999" : video.duration.toFixed(0).toString()));
   }
   
   //Keypress
