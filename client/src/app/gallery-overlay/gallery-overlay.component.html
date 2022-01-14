@@ -23,16 +23,20 @@
 		<!-- GIFs will autoplay, loop with no controls -->
 		<!-- Videos will autoplay, show controls and be muted -->
 		<!-- Not using source tags as they don't update correctly -->
-		<!-- playsinline is for iOS -->
+		<!-- fragmentVideo() is a fix for stuttering videos on PC -->
+		<!-- playsinline is for iOS, muted delcared twice as some are not respected -->
 		<ng-template #video>
-			<video (middleclick)="openImageInNewWindow()"
+			<video #videoplayer (middleclick)="openImageInNewWindow()"
 					src='{{media?.mediaUrl}}'
 					poster="{{media?.thumbnailUrl}}"
-					autoplay loop playsinline
+					loop playsinline muted autoplay
+					preload="metadata"
 					[muted]="'muted'"
 					[controls]='media?.type === "video" ? "controls" : ""'
-					(canplay)="imageLoaded = true"
 					(playing)="imageLoaded = true"
+					(canplay)="fragmentVideo(videoplayer)"
+					(error)="fragmentVideo(videoplayer)"
+					(stalled)="fragmentVideo(videoplayer)"
 					>
 					<p>Videos are not supported by your browser</p>
 			</video>
